@@ -4,7 +4,7 @@
 
 1. Open the latest release:
    <https://github.com/sbay-dev/MagicMirror/releases/latest>
-2. Download `MagicMirror-v1.0.3-windows-x64.zip`.
+2. Download `MagicMirror-v1.0.4-windows-x64.zip`.
 3. Extract the ZIP to a writable folder.
 4. Run `MagicMirror.Native.exe`.
 
@@ -45,9 +45,15 @@ The old documentation gateway at `https://wmr-doc.pages.dev/api/sarmad/ask` is
 not used as a default product fallback because it was deployed against the
 deprecated `@cf/openai/gpt-oss-120b` model.
 
-For reliable dictionary and AI translation results, deploy the dedicated Worker
-in `cloudflare\magicmirror-sarmad-gateway` and set `GatewayBaseUrl` to its
-Worker URL. See [CLOUDFLARE_GATEWAY.md](CLOUDFLARE_GATEWAY.md).
+For reliable dictionary and AI translation results, v1.0.4 and newer default to
+the dedicated Worker:
+
+```text
+https://magicmirror-sarmad-gateway.2sa.workers.dev
+```
+
+See [CLOUDFLARE_GATEWAY.md](CLOUDFLARE_GATEWAY.md) if you need to redeploy or
+replace the gateway.
 
 ## OCR
 

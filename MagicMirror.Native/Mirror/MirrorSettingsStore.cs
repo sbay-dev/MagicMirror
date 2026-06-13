@@ -11,6 +11,7 @@ public sealed class MirrorSettingsStore
     private const string DeprecatedSarmadModel = "@cf/openai/gpt-oss-120b";
     private const string CurrentSarmadModel = "@cf/openai/gpt-oss-20b";
     private const string DeprecatedCanonicalSarmadUrl = "https://wmr-doc.pages.dev/api/sarmad/ask";
+    private const string DedicatedGatewayBaseUrl = "https://magicmirror-sarmad-gateway.2sa.workers.dev";
 
     private readonly string _path;
     private MirrorSettings _current;
@@ -85,6 +86,8 @@ public sealed class MirrorSettingsStore
         }
 
         settings.GatewayBaseUrl = (settings.GatewayBaseUrl ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(settings.GatewayBaseUrl))
+            settings.GatewayBaseUrl = DedicatedGatewayBaseUrl;
         settings.FallbackSarmadUrl = (settings.FallbackSarmadUrl ?? "").Trim();
         if (string.Equals(settings.FallbackSarmadUrl.TrimEnd('/'), DeprecatedCanonicalSarmadUrl, StringComparison.OrdinalIgnoreCase))
             settings.FallbackSarmadUrl = "";

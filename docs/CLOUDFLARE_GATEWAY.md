@@ -9,6 +9,12 @@ POST /api/sarmad/ask
 
 and calls Cloudflare Workers AI through the `AI` binding.
 
+Current deployed gateway:
+
+```text
+https://magicmirror-sarmad-gateway.2sa.workers.dev
+```
+
 ## Deploy
 
 ```powershell
@@ -37,7 +43,7 @@ Set **AI gateway base URL** in Magic Mirror settings to the Worker URL, without
 the `/api/sarmad/ask` suffix. Example:
 
 ```text
-https://magicmirror-sarmad-gateway.<your-subdomain>.workers.dev
+https://magicmirror-sarmad-gateway.2sa.workers.dev
 ```
 
 The native app will post to:

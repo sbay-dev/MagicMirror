@@ -429,6 +429,9 @@ Solution layout:
   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` from GitHub Secrets only.
 - After Cloudflare deployment succeeds, `MirrorSettings.GatewayBaseUrl` should be set to the Worker
   origin URL so the native app calls `{GatewayBaseUrl}/api/sarmad/ask`.
+- The currently deployed dedicated gateway is
+  `https://magicmirror-sarmad-gateway.2sa.workers.dev`; `MirrorSettings.GatewayBaseUrl` and
+  `MirrorSettingsStore.Normalize(...)` default blank settings to this URL.
 
 ---
 

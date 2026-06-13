@@ -28,7 +28,7 @@ while preserving document structure, typography, and reading direction.
 
 ## Quick start from release
 
-1. Download `MagicMirror-v1.0.3-windows-x64.zip` from
+1. Download `MagicMirror-v1.0.4-windows-x64.zip` from
    <https://github.com/sbay-dev/MagicMirror/releases/latest>.
 2. Extract the ZIP.
 3. Run `MagicMirror.Native.exe`.
@@ -62,7 +62,7 @@ dotnet run --project .\MagicMirror.Native\MagicMirror.Native.csproj `
 Create a release ZIP:
 
 ```powershell
-.\scripts\package-windows.ps1 -Version 1.0.3
+.\scripts\package-windows.ps1 -Version 1.0.4
 ```
 
 ## Repository layout

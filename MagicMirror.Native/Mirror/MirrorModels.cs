@@ -167,10 +167,10 @@ public sealed class MirrorSettings
     public bool UseWindowText { get; set; } = true;
 
     /// <summary>
-    /// Primary AI gateway base URL (the app's deployed WasmMvcRuntime web layer on Cloudflare Pages).
+    /// Primary AI gateway base URL (the app's dedicated Cloudflare Worker).
     /// The mirror POSTs to "{GatewayBaseUrl}/api/sarmad/ask".
     /// </summary>
-    public string GatewayBaseUrl { get; set; } = "";
+    public string GatewayBaseUrl { get; set; } = "https://magicmirror-sarmad-gateway.2sa.workers.dev";
 
     /// <summary>
     /// Optional fallback Sarmad mesh used when the primary gateway is empty/unreachable.
