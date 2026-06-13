@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@ViewBag.Title — MagicMirror</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/cepha.css" />
+    <link rel="stylesheet" href="css/cepha-material.css" />
+    <link rel="stylesheet" href="css/cepha-native.css" />
+    <link rel="stylesheet" href="css/cmui-mob.css" />
+    <link rel="stylesheet" href="css/cepha-material-premium.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/cepha-responsive.css" />
+    <script src="js/cepha-platform.js"></script>
+</head>
+<body class="cepha-ui">
+    <nav class="cepha-nav">
+        <div class="cepha-nav-brand">
+            <a href="/">🧬 MagicMirror</a>
+        </div>
+        <div class="cepha-nav-links">
+            <a href="/">Home</a>
+        </div>
+        <button id="cepha-theme-toggle" class="cepha-theme-toggle" title="Toggle theme" aria-label="Toggle dark mode">🌗</button>
+    </nav>
+
+    <main class="cepha-main">
+        @RenderBody()
+    </main>
+
+    <footer class="cepha-footer">
+        <p>© 2026 — MagicMirror · Powered by <a href="https://www.nuget.org/packages/NetWasmMvc.SDK">Cepha</a></p>
+    </footer>
+</body>
+</html>

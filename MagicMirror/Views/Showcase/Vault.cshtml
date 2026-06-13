@@ -1,0 +1,65 @@
+@model List<VaultEntry>
+@{
+    ViewData["Title"] = "Data Vault";
+}
+
+<div class="cepha-hero">
+    <h1>🔒 Data Vault</h1>
+    <p class="lead">EntityCrypt — transparent EF Core field-level encryption via Matryoshka key rotation</p>
+</div>
+
+<div style="max-width:700px;margin:0 auto">
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <table style="width:100%;border-collapse:collapse">
+                <thead>
+                    <tr style="border-bottom:2px solid var(--cepha-border,#333)">
+                        <th style="text-align:left;padding:.75rem .5rem">Name</th>
+                        <th style="text-align:left;padding:.75rem .5rem">Category</th>
+                        <th style="text-align:center;padding:.75rem .5rem">Status</th>
+                        <th style="text-align:right;padding:.75rem .5rem">Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model)
+                    {
+                    <tr style="border-bottom:1px solid var(--cepha-border,#222)">
+                        <td style="padding:.75rem .5rem;font-weight:600">@entry.Name</td>
+                        <td style="padding:.75rem .5rem;color:var(--cepha-text-secondary,#888)">@entry.Category</td>
+                        <td style="padding:.75rem .5rem;text-align:center">
+                            @if (entry.IsEncrypted)
+                            {
+                            <span class="cepha-chip cepha-chip-success" style="font-size:.75rem">🔒 Encrypted</span>
+                            }
+                            else
+                            {
+                            <span class="cepha-chip" style="font-size:.75rem">📄 Plain</span>
+                            }
+                        </td>
+                        <td style="padding:.75rem .5rem;text-align:right;font-size:.85rem;color:var(--cepha-text-secondary,#888)">@entry.CreatedAt</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="cepha-card" style="margin-top:1.5rem;border-left:4px solid var(--cepha-primary,#6200ea)">
+        <div class="cepha-card-body">
+            <h4>🧬 Matryoshka Key Rotation</h4>
+            <p>EntityCrypt.EFCore provides transparent field encryption with automatic key rotation.
+               Encrypted fields are stored as <code>[EncryptedProperty]</code> attributes on your EF Core entities.</p>
+            <pre style="background:var(--cepha-surface,#1a1a2e);padding:1rem;border-radius:8px;font-size:.8rem;overflow-x:auto"><code>public class SecureEntity
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    [EncryptedProperty]
+    public string ApiKey { get; set; }
+
+    [EncryptedProperty]
+    public string OAuthToken { get; set; }
+}</code></pre>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,129 @@
+@model FeaturesViewModel
+@{
+    ViewData["Title"] = "Runtime Features";
+}
+
+<div class="cepha-hero">
+    <h1>⚙️ @Model.AppName — Runtime Features</h1>
+    <p class="lead">Active capabilities of your Cepha application</p>
+</div>
+
+@if (ViewBag.IsDevelopment != null)
+{
+<div class="cepha-card" style="border-left:4px solid var(--cepha-warning,#ff9800);margin-bottom:1.5rem">
+    <div class="cepha-card-body">
+        <h4>🔧 Development Mode</h4>
+        <p>EF Core logs are routed to the browser console. In production, logs go to memory-only (SysLog server).</p>
+    </div>
+</div>
+}
+
+<div class="cepha-features">
+    @if (Model.IsWasmRuntime)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🧬 WebAssembly Runtime</h3>
+            <p>Full .NET runtime executing in the browser — no server round-trips.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasIdentity)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🔐 ASP.NET Identity</h3>
+            <p>User management with login, registration, roles, and claims.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasSignalR)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>📡 SignalR Hubs</h3>
+            <p>In-process real-time communication between browser tabs.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasSQLite)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🗄️ SQLite + EF Core</h3>
+            <p>Full relational database with Entity Framework Core, persisted to OPFS.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasSecureUI)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🛡️ Secure UI</h3>
+            <p>5-layer DOM protection: MutationObserver, SHA-256 integrity, Shadow DOM, stream guard, anti-inspection.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasPassKey)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🔑 PassKey / FIDO2</h3>
+            <p>Biometric or security-key authentication — no passwords required.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="cepha-card" style="opacity:0.6">
+        <div class="cepha-card-body">
+            <h3>🔑 PassKey / FIDO2</h3>
+            <p>Biometric authentication — available with Premium license.</p>
+            <span class="cepha-chip">Not Bound</span>
+        </div>
+    </div>
+    }
+
+    @if (Model.HasEntityCrypt)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>🔒 EntityCrypt</h3>
+            <p>Transparent field-level encryption via Matryoshka key rotation.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="cepha-card" style="opacity:0.6">
+        <div class="cepha-card-body">
+            <h3>🔒 EntityCrypt</h3>
+            <p>EF Core field encryption — available with Premium license.</p>
+            <span class="cepha-chip">Not Bound</span>
+        </div>
+    </div>
+    }
+
+    @if (!Model.HasPassKey)
+    {
+    <div class="cepha-card" style="background:var(--cepha-surface-variant,#f0f0f0);border:1px dashed var(--cepha-border,#ccc)">
+        <div class="cepha-card-body" style="text-align:center">
+            <h3>💎 Unlock Premium</h3>
+            <p>@Model.FeatureCount features active. Add PassKey + EntityCrypt via the Cepha Store.</p>
+            <a href="/showcase/catalog" class="cepha-btn cepha-btn-primary">Browse Catalog →</a>
+        </div>
+    </div>
+    }
+</div>

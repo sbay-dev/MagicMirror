@@ -1,0 +1,59 @@
+@model PassKeyViewModel
+@{
+    ViewData["Title"] = "PassKey Manager";
+}
+
+<div class="cepha-hero">
+    <h1>🔑 PassKey Manager</h1>
+    <p class="lead">FIDO2 / WebAuthn — biometric or security key authentication</p>
+</div>
+
+<div style="max-width:600px;margin:0 auto">
+    @if (Model.IsAuthenticated)
+    {
+    <div class="cepha-card" style="border-left:4px solid var(--cepha-success,#4caf50)">
+        <div class="cepha-card-body">
+            <h3>👤 Signed in as @Model.UserName</h3>
+            <div class="specs" style="margin:1rem 0">
+                <span>🔑 @Model.KeyCount key(s) registered</span>
+                <span>📱 @Model.DeviceName</span>
+                <span>🕐 Last used: @Model.LastUsed</span>
+            </div>
+            <div style="display:flex;gap:.75rem;margin-top:1rem">
+                <button class="cepha-btn cepha-btn-primary">🆕 Register New Key</button>
+                <button class="cepha-btn cepha-btn-outline">⚙️ Manage Features</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="cepha-card" style="margin-top:1rem">
+        <div class="cepha-card-body">
+            <h4>📋 CLI Sync</h4>
+            <p>Paste this token in your terminal to bind premium features:</p>
+            <code style="display:block;padding:.75rem;background:var(--cepha-surface,#1a1a2e);border-radius:8px;font-size:.85rem;word-break:break-all">
+                cepha key bind --token &lt;your-sync-token&gt;
+            </code>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body" style="text-align:center;padding:2rem">
+            <div style="font-size:3rem;margin-bottom:1rem">🔐</div>
+            <h3>Sign in with PassKey</h3>
+            <p style="color:var(--cepha-text-secondary,#888);margin:1rem 0">
+                Bind premium features to your device. No passwords — biometric or security key only.
+            </p>
+            <div style="display:flex;gap:.75rem;justify-content:center;margin-top:1.5rem">
+                <button class="cepha-btn cepha-btn-primary" style="font-size:1rem;padding:.75rem 1.5rem">🆕 Register PassKey</button>
+                <button class="cepha-btn cepha-btn-outline" style="font-size:1rem;padding:.75rem 1.5rem">🔑 Sign In</button>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+<style>
+    .specs { display:flex; flex-wrap:wrap; gap:1rem; font-size:.85rem; color:var(--cepha-text-secondary,#888) }
+</style>

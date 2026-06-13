@@ -1,0 +1,46 @@
+# Build output
+bin/
+obj/
+artifacts/
+publish/
+release/
+dist/
+
+# Unrelated local/demo web assets not used by Magic Mirror.
+MagicMirror/wwwroot/qemu-wasm/
+
+# IDE and user state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and runtime state
+*.log
+mirror-settings.json
+mirror.log
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Release packages are uploaded to GitHub Releases, not committed.
+*.zip
+*.7z
+*.rar
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+
+# Local secrets
+.env
+.env.*
+secrets.*
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json

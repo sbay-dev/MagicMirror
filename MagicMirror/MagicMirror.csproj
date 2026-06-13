@@ -1,0 +1,23 @@
+<Project Sdk="NetWasmMvc.SDK/2.0.0">
+
+  <PropertyGroup>
+    <RootNamespace>MagicMirror</RootNamespace>
+    <AssemblyName>MagicMirror</AssemblyName>
+
+    <!-- Sarmad AI mesh: exposes POST /api/sarmad/ask on Cloudflare Pages, routed to
+         Cloudflare Workers AI @cf/openai/gpt-oss-120b. This is the "web gateway" the
+         native Magic Mirror overlay calls to translate captured text. -->
+    <CephaSarmadPlatform>true</CephaSarmadPlatform>
+    <CephaSarmadModel>@cf/openai/gpt-oss-120b</CephaSarmadModel>
+    <CephaSarmadMeshEndpoint>/api/sarmad/ask</CephaSarmadMeshEndpoint>
+    <CephaSarmadRewardCouncil>true</CephaSarmadRewardCouncil>
+    <CephaSarmadLanguage>ar-SA</CephaSarmadLanguage>
+    <CephaSarmadSecondaryLanguage>en-US</CephaSarmadSecondaryLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="5.3.*" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="5.3.*" />
+  </ItemGroup>
+
+</Project>

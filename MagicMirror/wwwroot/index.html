@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#667eea" />
+    <title>MagicMirror — Powered by Cepha</title>
+    <base href="/" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/cepha.css" />
+    <link rel="stylesheet" href="css/cepha-material.css" />
+    <link rel="stylesheet" href="css/cepha-native.css" />
+    <link rel="stylesheet" href="css/cmui-mob.css" />
+    <link rel="stylesheet" href="css/cepha-material-premium.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/cepha-responsive.css" />
+    <link rel="icon" href="favicon.ico" />
+    <script type="importmap"></script>
+    <script src="js/cepha-platform.js"></script>
+    <script src="js/cepha-security.js"></script>
+    <script src="js/cepha-syslog.js"></script>
+    <script src="js/cepha-material.js"></script>
+    <script src="js/cepha-material-db.js"></script>
+    <script src="js/cepha-md.js"></script>
+    <script src="js/cepha-stream.js"></script>
+    <script src="js/cepha-panel.js"></script>
+    <script src="js/cepha-sarmad.js"></script>
+    <script src="js/cepha-gate.js"></script>
+    <script type="module">import "./main.js";</script>
+</head>
+<body class="cepha-ui">
+    <div id="app">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:var(--cepha-bg,#fafafa);">
+            <div style="font-size:4rem;">🧬</div>
+            <h2 style="color:#667eea;">Loading...</h2>
+        </div>
+    </div>
+    <script>navigator.serviceWorker?.register('service-worker.js');</script>
+</body>
+</html>

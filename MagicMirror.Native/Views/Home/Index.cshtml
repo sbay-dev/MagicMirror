@@ -1,0 +1,76 @@
+<div class="cepha-hero">
+    <h1>@ViewBag.Message</h1>
+    <p class="lead">Running entirely in WebAssembly — no server required! 🧬</p>
+    <p class="text-muted">Built with <strong>NetWasmMvc.SDK</strong> — ASP.NET MVC in the browser.</p>
+</div>
+
+<div class="cepha-features">
+    <div class="cepha-card cepha-scroll-reveal" data-scroll-section="feature-mvc">
+        <div class="cepha-card-body">
+            <h3>⚡ Full MVC</h3>
+            <p>Controllers, Views, Routing — the ASP.NET MVC pattern you know, running in WASM.</p>
+        </div>
+    </div>
+    <div class="cepha-card cepha-scroll-reveal" data-scroll-section="feature-sqlite">
+        <div class="cepha-card-body">
+            <h3>🗄️ SQLite</h3>
+            <p>Entity Framework Core with SQLite — a real database in your browser.</p>
+        </div>
+    </div>
+    <div class="cepha-card cepha-scroll-reveal" data-scroll-section="feature-signalr">
+        <div class="cepha-card-body">
+            <h3>📡 SignalR</h3>
+            <p>Real-time communication between browser tabs with in-process SignalR hubs.</p>
+        </div>
+    </div>
+    <div class="cepha-card cepha-scroll-reveal" data-scroll-section="feature-security">
+        <div class="cepha-card-body">
+            <h3>🛡️ Secure UI</h3>
+            <p>5-layer DOM security: MutationObserver, SHA-256 integrity, Shadow DOM inputs, stream guard, anti-inspection.</p>
+            <span class="cepha-chip cepha-chip-success">Active</span>
+        </div>
+    </div>
+</div>
+
+<!-- Scroll-Guard — IntersectionObserver + SysReg logging via controller -->
+<script>
+(function() {
+    var revealed = {};
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            var section = el.getAttribute('data-scroll-section');
+            if (!section || revealed[section]) return;
+            revealed[section] = true;
+
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+
+            // SysReg: client-side audit
+            if (typeof CephaSysLog !== 'undefined') {
+                CephaSysLog.app('INFO', 'scroll-reveal:' + section, {
+                    timestamp: Date.now()
+                });
+            }
+
+            // SysReg: controller-side audit via WASM runtime
+            if (typeof window.cephaFetch === 'function') {
+                window.cephaFetch('/api/ui/scroll-guard?section=' +
+                    encodeURIComponent(section)).then(function(res) {
+                    if (typeof CephaSysLog !== 'undefined') {
+                        CephaSysLog.app('DEBUG', 'scroll-guard:ack:' + section);
+                    }
+                }).catch(function() {});
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.cepha-scroll-reveal').forEach(function(el) {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(24px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+})();
+</script>

@@ -1,0 +1,39 @@
+@*
+    🔒 CephaGate — Isolated Authentication Portal (Partial View)
+
+    Usage in any view:
+      @await Html.PartialAsync("_CephaGatePartial")
+
+    Or with custom config:
+      @{ ViewBag.GateTenant = "my-org"; ViewBag.GateServer = "https://id.cepha.dev"; }
+      @await Html.PartialAsync("_CephaGatePartial")
+
+    Deployment modes:
+      1. Embedded: Use this partial in your Cepha MVC views
+      2. Script tag: <script src="https://gate.cepha.dev/v1/{tenant}.js"></script>
+      3. DNS: CNAME auth.{tenant}.cepha.dev → gate.cepha.dev
+      4. Direct element: <cepha-gate tenant="x" server="https://..."></cepha-gate>
+*@
+<script src="js/cepha-gate.js"></script>
+<cepha-gate
+    tenant="@(ViewBag.GateTenant ?? "default")"
+    server="@(ViewBag.GateServer ?? "")"
+    brand="@(ViewBag.GateBrand ?? "🔒 Secure Login")"
+    height="@(ViewBag.GateHeight ?? "520")">
+</cepha-gate>
+<script>
+    // Listen for authentication events from the isolated gate
+    document.querySelector('cepha-gate')?.addEventListener('cepha-auth', function(e) {
+        var detail = e.detail;
+        if (detail.success) {
+            // Store token and navigate
+            if (detail.data?.token) {
+                localStorage.setItem('cepha-token', detail.data.token);
+            }
+            // Notify Cepha Worker of auth change
+            if (typeof worker !== 'undefined') {
+                worker.postMessage({ type: 'auth-sync', path: location.pathname });
+            }
+        }
+    });
+</script>

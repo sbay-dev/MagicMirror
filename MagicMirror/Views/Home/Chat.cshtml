@@ -1,0 +1,217 @@
+<h1>@ViewBag.Title</h1>
+<p class="cepha-caption" id="chat-status">Connecting to AI backend...</p>
+
+<div style="max-width:680px;margin:24px auto;">
+  <div id="chat-messages" style="
+    height:400px;overflow-y:auto;padding:16px;
+    border:1px solid var(--cepha-border,#e0e0e0);border-radius:12px;
+    background:var(--cepha-surface,#fff);margin-bottom:12px;
+    font-family:'Segoe UI',sans-serif;font-size:0.95rem;
+    scroll-behavior:smooth;
+  ">
+    <div id="chat-welcome" style="color:#999;text-align:center;padding:40px 0;">
+      <div style="font-size:2rem;margin-bottom:8px;">🤖</div>
+      Detecting AI backend...
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;">
+    <input id="chat-input" class="cepha-input" placeholder="Type a message..."
+           style="flex:1;" autocomplete="off" />
+    <button id="chat-stream" class="cepha-btn cepha-btn-primary"
+            style="white-space:nowrap;" disabled>
+      Send 🌊
+    </button>
+  </div>
+
+  <div id="chat-info" style="margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--cepha-bg,#f8f9fa);font-size:0.82rem;display:none;">
+  </div>
+</div>
+
+<script>
+(function() {
+  var msgs      = document.getElementById('chat-messages');
+  var input     = document.getElementById('chat-input');
+  var streamBtn = document.getElementById('chat-stream');
+  var statusEl  = document.getElementById('chat-status');
+  var welcomeEl = document.getElementById('chat-welcome');
+  var infoEl    = document.getElementById('chat-info');
+  var firstMsg  = true;
+
+  if (!msgs || !input || !streamBtn) return;
+
+  function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function addBubble(user, text, isAi) {
+    var div = document.createElement('div');
+    var bg = isAi
+      ? 'background:linear-gradient(135deg,#e3f2fd,#f3e5f5);'
+      : 'background:var(--cepha-bg,#f5f5f5);';
+    div.style.cssText = 'margin-bottom:10px;padding:10px 14px;border-radius:12px;line-height:1.5;' + bg;
+    if (text) {
+      div.innerHTML = '<strong>' + esc(user) + ':</strong> ' + esc(text);
+    } else {
+      div.innerHTML = '<strong>' + esc(user) + ':</strong> <span class="s-text"></span><span class="s-cur" style="display:inline-block;width:2px;height:1em;background:#666;animation:blink .7s infinite;vertical-align:text-bottom;margin-left:1px;"></span>';
+    }
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // ── Ollama proxy detection ─────────────────────────────────
+  var ollamaProxy = null;
+  var ollamaModel = null;
+
+  async function detectOllama() {
+    var ports = [3005, 3006, 3007];
+    for (var port of ports) {
+      for (var proto of ['http', 'https']) {
+        try {
+          var url = proto + '://localhost:' + port + '/_ollama/health';
+          var r = await fetch(url, { signal: AbortSignal.timeout(1200) });
+          if (r.ok) {
+            var data = await r.json();
+            ollamaProxy = proto + '://localhost:' + port;
+            ollamaModel = data.model || 'unknown';
+            return data;
+          }
+        } catch(_) {}
+      }
+    }
+    return null;
+  }
+
+  detectOllama().then(function(data) {
+    if (data && data.ollama === 'connected') {
+      statusEl.innerHTML = '🤖 <strong>Ollama AI</strong> — model: <code>' + esc(ollamaModel) + '</code>';
+      statusEl.style.color = '#4caf50';
+      welcomeEl.innerHTML = '<div style="font-size:2rem;margin-bottom:8px;">🤖</div>' +
+        'Connected to <strong>Ollama</strong> (<code>' + esc(ollamaModel) + '</code>)<br/>' +
+        '<span style="font-size:0.85rem;">Type a message to start a real AI conversation</span>';
+      infoEl.innerHTML = '🟢 <strong>AI Backend:</strong> Ollama via <code>' + esc(ollamaProxy) + '</code><br/>' +
+        '📡 Models: ' + (data.models || []).map(function(m) { return '<code>' + esc(m) + '</code>'; }).join(', ');
+      infoEl.style.display = 'block';
+    } else if (data) {
+      statusEl.innerHTML = '⚠️ Ollama proxy found but Ollama is unreachable — using echo mode';
+      statusEl.style.color = '#ff9800';
+      ollamaProxy = null;
+      welcomeEl.innerHTML = '<div style="font-size:2rem;margin-bottom:8px;">🧬</div>' +
+        'Ollama not running — echo mode active<br/>' +
+        '<span style="font-size:0.85rem;">Start Ollama: <code>ollama serve</code></span>';
+    } else {
+      statusEl.innerHTML = '🧬 Echo mode — <code>IAsyncEnumerable</code> streaming demo';
+      statusEl.style.color = '';
+      welcomeEl.innerHTML = '<div style="font-size:2rem;margin-bottom:8px;">🧬</div>' +
+        'No AI backend detected — using echo mode<br/>' +
+        '<span style="font-size:0.85rem;">Start Ollama proxy from the Service Control Panel</span>';
+    }
+    streamBtn.disabled = false;
+    streamBtn.textContent = ollamaProxy ? 'Send 🤖' : 'Send 🌊';
+  });
+
+  // ── Streaming ──────────────────────────────────────────────
+  var streaming = false;
+
+  async function doStream() {
+    var message = input.value.trim();
+    if (!message || streaming) return;
+    streaming = true;
+    input.value = '';
+    streamBtn.disabled = true;
+    streamBtn.textContent = ollamaProxy ? 'Thinking...' : 'Streaming...';
+
+    // L9: register server exclusion for streaming DOM updates
+    var _nonce = null;
+    if (typeof CephaSecurity !== 'undefined' && CephaSecurity.registerServerExclusion) {
+        _nonce = CephaSecurity.generateNonce();
+        CephaSecurity.registerServerExclusion(_nonce, 'StreamingChat', 30000, '#chat-messages');
+        CephaSecurity.beginServerFrame(_nonce);
+    }
+
+    if (firstMsg) { msgs.innerHTML = ''; firstMsg = false; }
+
+    addBubble('You', message, false);
+
+    var aiLabel = ollamaProxy ? '🤖 ' + ollamaModel : '🧬 Echo';
+    var bubble = addBubble(aiLabel, '', true);
+    if (_nonce) bubble.setAttribute('data-cepha-server-nonce', _nonce);
+    var textEl = bubble.querySelector('.s-text');
+
+    try {
+      if (ollamaProxy) {
+        // ── Real AI via Ollama proxy ───────────────────────
+        var streamUrl = ollamaProxy + '/api/chat/stream?message=' + encodeURIComponent(message);
+        var resp = await fetch(streamUrl);
+        if (!resp.ok) throw new Error('Proxy returned ' + resp.status);
+
+        var reader = resp.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+        while (true) {
+          var result = await reader.read();
+          if (result.done) break;
+          buf += decoder.decode(result.value, { stream: true });
+          var parts = buf.split('\n');
+          buf = parts.pop() || '';
+          for (var i = 0; i < parts.length; i++) {
+            var line = parts[i].trim();
+            if (!line) continue;
+            try {
+              var d = JSON.parse(line);
+              if (d.type === 'char' && textEl) {
+                textEl.textContent += d.value;
+                msgs.scrollTop = msgs.scrollHeight;
+              }
+            } catch(_) {}
+          }
+        }
+      } else {
+        // ── Fallback: cephaFetch echo (WASM controller) ───
+        if (typeof window.cephaFetch !== 'function') {
+          throw new Error('Runtime not ready — please wait');
+        }
+        var url = '/api/chat/stream?user=You&message=' + encodeURIComponent(message);
+        var fetchPromise = window.cephaFetch(url);
+        var timeout = new Promise(function(_, reject) {
+          setTimeout(function() { reject(new Error('Timeout (15s)')); }, 15000);
+        });
+        var body = await Promise.race([fetchPromise, timeout]);
+        if (!body || typeof body !== 'string') throw new Error('Empty response');
+
+        var lines = body.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line) continue;
+          try {
+            var d = JSON.parse(line);
+            if (d.type === 'char' && textEl) {
+              textEl.textContent += d.value;
+              msgs.scrollTop = msgs.scrollHeight;
+              await new Promise(function(r) { setTimeout(r, 30); });
+            }
+          } catch(_) {}
+        }
+      }
+    } catch(err) {
+      if (textEl) textEl.textContent = '⚠️ ' + (err.message || 'Error');
+      console.error('🧬 Chat error:', err);
+    }
+
+    var cur = bubble.querySelector('.s-cur');
+    if (cur) cur.remove();
+    // L9: revoke server exclusion and re-hash
+    if (_nonce && typeof CephaSecurity !== 'undefined') {
+        CephaSecurity.revokeServerExclusion(_nonce);
+        CephaSecurity.endServerFrame();
+    }
+    streaming = false;
+    streamBtn.disabled = false;
+    streamBtn.textContent = ollamaProxy ? 'Send 🤖' : 'Send 🌊';
+    input.focus();
+  }
+
+  streamBtn.addEventListener('click', doStream);
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') doStream(); });
+})();
+</script>
+<style>@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}</style>

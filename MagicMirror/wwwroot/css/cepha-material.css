@@ -1,0 +1,1341 @@
+/* ═══════════════════════════════════════════════════════════════
+   🧬 Cepha Material UI — Financial-Grade Design System
+   ═══════════════════════════════════════════════════════════════
+   Built for banking/fintech UIs running in Cepha WASM MVC.
+   All components use CSS custom properties for theming.
+   Secure by default — works with CephaSecurity shadow inputs.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ────────────────────────────────────────────── */
+
+:root {
+    /* Primary palette */
+    --cepha-primary: #667eea;
+    --cepha-primary-dark: #5a67d8;
+    --cepha-primary-light: #a3bffa;
+    --cepha-primary-alpha: rgba(102, 126, 234, 0.15);
+    --cepha-focus-ring: rgba(102, 126, 234, 0.25);
+
+    /* Secondary palette */
+    --cepha-secondary: #764ba2;
+    --cepha-secondary-dark: #6b46a3;
+
+    /* Semantic colors */
+    --cepha-success: #48bb78;
+    --cepha-warning: #ed8936;
+    --cepha-danger: #f56565;
+    --cepha-info: #4299e1;
+
+    /* Surface & text */
+    --cepha-bg: #ffffff;
+    --cepha-surface: #f7fafc;
+    --cepha-surface-elevated: #ffffff;
+    --cepha-text: #1a202c;
+    --cepha-text-secondary: #718096;
+    --cepha-placeholder: #a0aec0;
+    --cepha-label: #4a5568;
+    --cepha-border: #e2e8f0;
+    --cepha-divider: #edf2f7;
+
+    /* Input */
+    --cepha-input-bg: #ffffff;
+    --cepha-input-disabled-bg: #f7fafc;
+
+    /* Shadows */
+    --cepha-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --cepha-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --cepha-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --cepha-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    --cepha-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+
+    /* Typography */
+    --cepha-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --cepha-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+    /* Spacing scale */
+    --cepha-space-xs: 4px;
+    --cepha-space-sm: 8px;
+    --cepha-space-md: 16px;
+    --cepha-space-lg: 24px;
+    --cepha-space-xl: 32px;
+    --cepha-space-2xl: 48px;
+
+    /* Radius */
+    --cepha-radius-sm: 4px;
+    --cepha-radius: 8px;
+    --cepha-radius-lg: 12px;
+    --cepha-radius-xl: 16px;
+    --cepha-radius-full: 9999px;
+
+    /* Transition */
+    --cepha-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --cepha-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Dark Theme ──────────────────────────────────────────────── */
+
+[data-theme="dark"] {
+    --cepha-bg: #0f1219;
+    --cepha-surface: #1a1f2e;
+    --cepha-surface-elevated: #242b3d;
+    --cepha-text: #e8edf5;
+    --cepha-text-secondary: #8892a4;
+    --cepha-placeholder: #5a6478;
+    --cepha-label: #8892a4;
+    --cepha-border: #2a3244;
+    --cepha-divider: #1e2433;
+    --cepha-input-bg: #1a1f2e;
+    --cepha-input-disabled-bg: #0f1219;
+    --cepha-primary-alpha: rgba(102, 126, 234, 0.18);
+    --cepha-focus-ring: rgba(102, 126, 234, 0.4);
+    --cepha-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 8px rgba(102, 126, 234, 0.04);
+    --cepha-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 12px rgba(102, 126, 234, 0.05);
+    --cepha-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(102, 126, 234, 0.06);
+    --cepha-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 30px rgba(102, 126, 234, 0.08);
+    --cepha-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(102, 126, 234, 0.1);
+}
+
+/* ── Dark Theme Enhancements — Futuristic Anti-Shadow ────────── */
+
+[data-theme="dark"] body,
+[data-theme="dark"] .cepha-ui {
+    background: linear-gradient(180deg, #0f1219 0%, #0d1117 50%, #0f1219 100%);
+    color: var(--cepha-text);
+    transition: background 0.4s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .cepha-card {
+    background: linear-gradient(145deg, rgba(26, 31, 46, 0.95), rgba(36, 43, 61, 0.85));
+    border: 1px solid rgba(102, 126, 234, 0.08);
+    box-shadow: var(--cepha-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(8px);
+}
+
+[data-theme="dark"] .cepha-card:hover {
+    border-color: rgba(102, 126, 234, 0.15);
+    box-shadow: var(--cepha-shadow-md), 0 0 20px rgba(102, 126, 234, 0.06);
+}
+
+[data-theme="dark"] cepha-secure-field {
+    background: transparent;
+}
+
+[data-theme="dark"] .cepha-input,
+[data-theme="dark"] .cepha-select {
+    background: var(--cepha-input-bg);
+    color: var(--cepha-text);
+    border-color: var(--cepha-border);
+}
+
+[data-theme="dark"] .cepha-table th {
+    background: rgba(102, 126, 234, 0.08) !important;
+    color: var(--cepha-text-secondary);
+    border-bottom: 1px solid rgba(102, 126, 234, 0.12);
+}
+
+[data-theme="dark"] .cepha-table td {
+    border-bottom: 1px solid var(--cepha-divider);
+}
+
+[data-theme="dark"] .cepha-table tr:hover td {
+    background: rgba(102, 126, 234, 0.04);
+}
+
+[data-theme="dark"] .cepha-badge {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .cepha-nav {
+    background: linear-gradient(135deg, #1a1f35, #0f1229);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(102, 126, 234, 0.08);
+}
+
+[data-theme="dark"] .cepha-footer {
+    background: var(--cepha-surface);
+    border-top: 1px solid rgba(102, 126, 234, 0.08);
+}
+
+[data-theme="dark"] .cepha-footer p,
+[data-theme="dark"] .cepha-footer a {
+    color: var(--cepha-text-secondary);
+}
+
+[data-theme="dark"] .cepha-hero {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.06), rgba(118, 75, 162, 0.04));
+    border: 1px solid rgba(102, 126, 234, 0.06);
+}
+
+[data-theme="dark"] .cepha-input,
+[data-theme="dark"] .cepha-select,
+[data-theme="dark"] .cepha-textarea {
+    background: var(--cepha-input-bg);
+    color: var(--cepha-text);
+    border-color: var(--cepha-border);
+}
+
+[data-theme="dark"] .cepha-input:focus,
+[data-theme="dark"] .cepha-select:focus,
+[data-theme="dark"] .cepha-textarea:focus {
+    border-color: var(--cepha-primary);
+    box-shadow: 0 0 0 3px var(--cepha-focus-ring), 0 0 12px rgba(102, 126, 234, 0.1);
+}
+
+[data-theme="dark"] .cepha-btn-secondary {
+    border-color: rgba(102, 126, 234, 0.4);
+    color: var(--cepha-primary-light);
+}
+
+/* Theme toggle button in nav */
+.cepha-theme-toggle {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    margin-left: var(--cepha-space-sm);
+    flex-shrink: 0;
+}
+
+.cepha-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.22);
+    transform: rotate(30deg);
+}
+
+[data-theme="dark"] .cepha-theme-toggle {
+    background: rgba(102, 126, 234, 0.15);
+}
+
+[data-theme="dark"] .cepha-theme-toggle:hover {
+    background: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 0 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Logs page tab styles — proper Material UI dark mode */
+.cepha-logs-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--cepha-border);
+}
+
+.cepha-logs-tab {
+    all: unset;
+    cursor: pointer;
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    color: var(--cepha-text-secondary);
+    background: var(--cepha-surface);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.cepha-logs-tab:hover {
+    color: var(--cepha-primary);
+    background: var(--cepha-primary-alpha);
+}
+
+.cepha-logs-tab.active {
+    color: var(--cepha-primary);
+    border-bottom-color: var(--cepha-primary);
+}
+
+[data-theme="dark"] .cepha-logs-tab {
+    background: var(--cepha-surface);
+}
+
+[data-theme="dark"] .cepha-logs-tab:hover {
+    background: rgba(102, 126, 234, 0.08);
+}
+
+[data-theme="dark"] .cepha-logs-tab.active {
+    background: rgba(102, 126, 234, 0.06);
+}
+
+/* Logs level badges */
+.cepha-log-level {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    font-family: var(--cepha-font-mono);
+}
+
+.cepha-log-level-fatal { background: #b71c1c; color: #fff; }
+.cepha-log-level-error { background: #f44336; color: #fff; }
+.cepha-log-level-warn { background: #ff9800; color: #fff; }
+.cepha-log-level-info { background: #2196f3; color: #fff; }
+.cepha-log-level-debug { background: var(--cepha-surface-elevated); color: var(--cepha-text-secondary); }
+
+/* ── Global Reset ────────────────────────────────────────────── */
+
+.cepha-ui, .cepha-ui * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.cepha-ui {
+    font-family: var(--cepha-font);
+    color: var(--cepha-text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography ──────────────────────────────────────────────── */
+
+.cepha-h1 { font-size: 2rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.025em; }
+.cepha-h2 { font-size: 1.5rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; }
+.cepha-h3 { font-size: 1.25rem; font-weight: 600; line-height: 1.4; }
+.cepha-h4 { font-size: 1.125rem; font-weight: 600; line-height: 1.4; }
+.cepha-body { font-size: 1rem; line-height: 1.6; }
+.cepha-body-sm { font-size: 0.875rem; line-height: 1.5; }
+.cepha-caption { font-size: 0.75rem; color: var(--cepha-text-secondary); }
+.cepha-mono { font-family: var(--cepha-font-mono); font-size: 0.875rem; }
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+
+.cepha-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cepha-space-sm);
+    padding: 10px 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    border-radius: var(--cepha-radius);
+    cursor: pointer;
+    transition: all var(--cepha-transition);
+    outline: none;
+    text-decoration: none;
+    white-space: nowrap;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.cepha-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity var(--cepha-transition-fast);
+}
+
+.cepha-btn:hover::after { opacity: 0.08; }
+.cepha-btn:active::after { opacity: 0.15; }
+
+.cepha-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--cepha-focus-ring);
+}
+
+.cepha-btn-primary {
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    color: #fff;
+}
+
+.cepha-btn-secondary {
+    background: transparent;
+    color: var(--cepha-primary);
+    border: 2px solid var(--cepha-primary);
+}
+
+.cepha-btn-ghost {
+    background: transparent;
+    color: var(--cepha-text);
+}
+
+.cepha-btn-danger {
+    background: var(--cepha-danger);
+    color: #fff;
+}
+
+.cepha-btn-success {
+    background: var(--cepha-success);
+    color: #fff;
+}
+
+.cepha-btn-sm { padding: 6px 12px; font-size: 0.75rem; }
+.cepha-btn-lg { padding: 14px 28px; font-size: 1rem; }
+
+.cepha-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Ripple effect container */
+.cepha-btn .cepha-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(0);
+    animation: cepha-ripple-anim 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes cepha-ripple-anim {
+    to { transform: scale(4); opacity: 0; }
+}
+
+/* ── Text Inputs ─────────────────────────────────────────────── */
+
+.cepha-input-group {
+    position: relative;
+    margin-bottom: var(--cepha-space-md);
+}
+
+.cepha-input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 1rem;
+    font-family: inherit;
+    border: 2px solid var(--cepha-border);
+    border-radius: var(--cepha-radius);
+    background: var(--cepha-input-bg);
+    color: var(--cepha-text);
+    outline: none;
+    transition: border-color var(--cepha-transition), box-shadow var(--cepha-transition);
+}
+
+.cepha-input:focus {
+    border-color: var(--cepha-primary);
+    box-shadow: 0 0 0 3px var(--cepha-focus-ring);
+}
+
+.cepha-input::placeholder { color: var(--cepha-placeholder); }
+
+.cepha-input:disabled {
+    background: var(--cepha-input-disabled-bg);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.cepha-input-error {
+    border-color: var(--cepha-danger) !important;
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.15) !important;
+}
+
+.cepha-input-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cepha-label);
+}
+
+.cepha-input-hint {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--cepha-text-secondary);
+}
+
+.cepha-input-error-text {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--cepha-danger);
+}
+
+/* Floating label */
+.cepha-float-label {
+    position: relative;
+}
+
+.cepha-float-label .cepha-input {
+    padding-top: 20px;
+    padding-bottom: 8px;
+}
+
+.cepha-float-label label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    color: var(--cepha-placeholder);
+    pointer-events: none;
+    transition: all var(--cepha-transition);
+}
+
+.cepha-float-label .cepha-input:focus ~ label,
+.cepha-float-label .cepha-input:not(:placeholder-shown) ~ label {
+    top: 8px;
+    transform: translateY(0);
+    font-size: 0.7rem;
+    color: var(--cepha-primary);
+}
+
+/* ── Cards ───────────────────────────────────────────────────── */
+
+.cepha-card {
+    background: var(--cepha-surface-elevated);
+    border: 1px solid var(--cepha-border);
+    border-radius: var(--cepha-radius-lg);
+    box-shadow: var(--cepha-shadow);
+    overflow: hidden;
+    transition: box-shadow var(--cepha-transition), transform var(--cepha-transition), background 0.3s ease, border-color 0.3s ease;
+}
+
+.cepha-card:hover {
+    box-shadow: var(--cepha-shadow-md);
+}
+
+.cepha-card-header {
+    padding: var(--cepha-space-lg);
+    border-bottom: 1px solid var(--cepha-divider);
+}
+
+.cepha-card-body {
+    padding: var(--cepha-space-lg);
+}
+
+cepha-secure-field {
+    display: block;
+    margin-bottom: var(--cepha-space-md);
+    background: transparent;
+}
+
+.cepha-card-footer {
+    padding: var(--cepha-space-md) var(--cepha-space-lg);
+    border-top: 1px solid var(--cepha-divider);
+    background: var(--cepha-surface);
+}
+
+.cepha-card-elevated {
+    box-shadow: var(--cepha-shadow-lg);
+    border: none;
+}
+
+/* ── App Bar ─────────────────────────────────────────────────── */
+
+.cepha-appbar {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--cepha-space-lg);
+    height: 56px;
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    color: #fff;
+    box-shadow: var(--cepha-shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cepha-appbar-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.cepha-appbar-spacer { flex: 1; }
+
+.cepha-appbar-action {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--cepha-transition);
+    font-size: 1.25rem;
+}
+
+.cepha-appbar-action:hover { background: rgba(255, 255, 255, 0.25); }
+
+/* ── Navigation Drawer ───────────────────────────────────────── */
+
+.cepha-drawer {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--cepha-surface-elevated);
+    box-shadow: var(--cepha-shadow-xl);
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+.cepha-drawer.open { transform: translateX(0); }
+
+.cepha-drawer-header {
+    padding: var(--cepha-space-lg);
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    color: #fff;
+}
+
+.cepha-drawer-item {
+    display: flex;
+    align-items: center;
+    gap: var(--cepha-space-md);
+    padding: 12px var(--cepha-space-lg);
+    color: var(--cepha-text);
+    text-decoration: none;
+    transition: background var(--cepha-transition);
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.cepha-drawer-item:hover { background: var(--cepha-primary-alpha); }
+.cepha-drawer-item.active {
+    background: var(--cepha-primary-alpha);
+    color: var(--cepha-primary);
+    font-weight: 600;
+}
+
+.cepha-drawer-divider {
+    height: 1px;
+    background: var(--cepha-divider);
+    margin: var(--cepha-space-sm) 0;
+}
+
+.cepha-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1099;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.cepha-drawer-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ── Chips / Badges ──────────────────────────────────────────── */
+
+.cepha-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--cepha-radius-full);
+    background: var(--cepha-primary-alpha);
+    color: var(--cepha-primary);
+    white-space: nowrap;
+}
+
+.cepha-chip-success { background: rgba(72, 187, 120, 0.15); color: var(--cepha-success); }
+.cepha-chip-danger  { background: rgba(245, 101, 101, 0.15); color: var(--cepha-danger); }
+.cepha-chip-warning { background: rgba(237, 137, 54, 0.15); color: var(--cepha-warning); }
+
+.cepha-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    border-radius: 10px;
+    background: var(--cepha-danger);
+    color: #fff;
+}
+
+/* ── Tables ──────────────────────────────────────────────────── */
+
+.cepha-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+}
+
+.cepha-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--cepha-text-secondary);
+    border-bottom: 2px solid var(--cepha-border);
+    background: var(--cepha-surface);
+    white-space: nowrap;
+}
+
+.cepha-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--cepha-divider);
+    vertical-align: middle;
+}
+
+.cepha-table tr:hover td { background: var(--cepha-primary-alpha); }
+.cepha-table tr:last-child td { border-bottom: none; }
+
+/* ── Dialogs / Modals ────────────────────────────────────────── */
+
+.cepha-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+.cepha-dialog-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.cepha-dialog {
+    background: var(--cepha-surface-elevated);
+    border-radius: var(--cepha-radius-xl);
+    box-shadow: var(--cepha-shadow-xl);
+    min-width: 360px;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: scale(0.95) translateY(10px);
+    transition: transform 0.2s;
+}
+
+.cepha-dialog-overlay.open .cepha-dialog {
+    transform: scale(1) translateY(0);
+}
+
+.cepha-dialog-header {
+    padding: var(--cepha-space-lg);
+    border-bottom: 1px solid var(--cepha-divider);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cepha-dialog-body { padding: var(--cepha-space-lg); }
+
+.cepha-dialog-actions {
+    padding: var(--cepha-space-md) var(--cepha-space-lg);
+    border-top: 1px solid var(--cepha-divider);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--cepha-space-sm);
+}
+
+/* ── Alerts / Snackbar ───────────────────────────────────────── */
+
+.cepha-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--cepha-space-md);
+    padding: var(--cepha-space-md);
+    border-radius: var(--cepha-radius);
+    border-left: 4px solid;
+    margin-bottom: var(--cepha-space-md);
+}
+
+.cepha-alert-info    { background: rgba(66, 153, 225, 0.1);  border-color: var(--cepha-info); }
+.cepha-alert-success { background: rgba(72, 187, 120, 0.1);  border-color: var(--cepha-success); }
+.cepha-alert-warning { background: rgba(237, 137, 54, 0.1);  border-color: var(--cepha-warning); }
+.cepha-alert-danger  { background: rgba(245, 101, 101, 0.1); border-color: var(--cepha-danger); }
+
+.cepha-snackbar {
+    position: fixed;
+    bottom: var(--cepha-space-lg);
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    padding: 12px 24px;
+    background: var(--cepha-text);
+    color: var(--cepha-bg);
+    border-radius: var(--cepha-radius);
+    box-shadow: var(--cepha-shadow-lg);
+    font-size: 0.875rem;
+    z-index: 3000;
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.cepha-snackbar.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* ── Progress / Loading ──────────────────────────────────────── */
+
+.cepha-progress {
+    height: 4px;
+    background: var(--cepha-border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.cepha-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cepha-primary), var(--cepha-secondary));
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+
+.cepha-progress-indeterminate .cepha-progress-bar {
+    width: 40%;
+    animation: cepha-progress-slide 1.5s ease-in-out infinite;
+}
+
+@keyframes cepha-progress-slide {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+}
+
+.cepha-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--cepha-border);
+    border-top-color: var(--cepha-primary);
+    border-radius: 50%;
+    animation: cepha-spin 0.8s linear infinite;
+}
+
+@keyframes cepha-spin {
+    to { transform: rotate(360deg); }
+}
+
+.cepha-skeleton {
+    background: linear-gradient(90deg,
+        var(--cepha-border) 25%,
+        var(--cepha-divider) 50%,
+        var(--cepha-border) 75%);
+    background-size: 200% 100%;
+    animation: cepha-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--cepha-radius-sm);
+}
+
+@keyframes cepha-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── Tooltips ────────────────────────────────────────────────── */
+
+[data-cepha-tooltip] {
+    position: relative;
+}
+
+[data-cepha-tooltip]::after {
+    content: attr(data-cepha-tooltip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    background: var(--cepha-text);
+    color: var(--cepha-bg);
+    border-radius: var(--cepha-radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--cepha-transition-fast), transform var(--cepha-transition-fast);
+    z-index: 999;
+}
+
+[data-cepha-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* ── Avatars ─────────────────────────────────────────────────── */
+
+.cepha-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.cepha-avatar-sm { width: 32px; height: 32px; font-size: 0.75rem; }
+.cepha-avatar-lg { width: 56px; height: 56px; font-size: 1.25rem; }
+
+/* ── Lists ───────────────────────────────────────────────────── */
+
+.cepha-list { list-style: none; }
+
+.cepha-list-item {
+    display: flex;
+    align-items: center;
+    gap: var(--cepha-space-md);
+    padding: 12px var(--cepha-space-md);
+    border-bottom: 1px solid var(--cepha-divider);
+    transition: background var(--cepha-transition);
+}
+
+.cepha-list-item:hover { background: var(--cepha-primary-alpha); }
+.cepha-list-item:last-child { border-bottom: none; }
+
+/* ── Switch / Toggle ─────────────────────────────────────────── */
+
+.cepha-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    display: inline-block;
+}
+
+.cepha-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cepha-switch-track {
+    position: absolute;
+    inset: 0;
+    background: var(--cepha-border);
+    border-radius: 12px;
+    transition: background var(--cepha-transition);
+    cursor: pointer;
+}
+
+.cepha-switch-track::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 2px;
+    top: 2px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform var(--cepha-transition);
+    box-shadow: var(--cepha-shadow-sm);
+}
+
+.cepha-switch input:checked + .cepha-switch-track {
+    background: var(--cepha-primary);
+}
+
+.cepha-switch input:checked + .cepha-switch-track::after {
+    transform: translateX(20px);
+}
+
+/* ── Tabs ────────────────────────────────────────────────────── */
+
+.cepha-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--cepha-divider);
+    gap: var(--cepha-space-xs);
+}
+
+.cepha-tab {
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cepha-text-secondary);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--cepha-transition);
+}
+
+.cepha-tab:hover { color: var(--cepha-text); }
+
+.cepha-tab.active {
+    color: var(--cepha-primary);
+}
+
+.cepha-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--cepha-primary);
+    border-radius: 1px 1px 0 0;
+}
+
+/* ── Security Status Indicator ───────────────────────────────── */
+
+.cepha-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--cepha-radius-full);
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cepha-security-badge.secure {
+    background: rgba(72, 187, 120, 0.15);
+    color: var(--cepha-success);
+}
+
+.cepha-security-badge.warning {
+    background: rgba(237, 137, 54, 0.15);
+    color: var(--cepha-warning);
+}
+
+.cepha-security-badge.breach {
+    background: rgba(245, 101, 101, 0.15);
+    color: var(--cepha-danger);
+    animation: cepha-pulse 1s ease-in-out infinite;
+}
+
+@keyframes cepha-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.cepha-security-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ── Layout Utilities ────────────────────────────────────────── */
+
+.cepha-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--cepha-space-lg);
+}
+
+.cepha-container-sm { max-width: 640px; }
+.cepha-container-md { max-width: 768px; }
+
+.cepha-flex { display: flex; }
+.cepha-flex-col { display: flex; flex-direction: column; }
+.cepha-items-center { align-items: center; }
+.cepha-justify-between { justify-content: space-between; }
+.cepha-justify-center { justify-content: center; }
+.cepha-gap-sm { gap: var(--cepha-space-sm); }
+.cepha-gap-md { gap: var(--cepha-space-md); }
+.cepha-gap-lg { gap: var(--cepha-space-lg); }
+
+.cepha-grid { display: grid; gap: var(--cepha-space-md); }
+.cepha-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.cepha-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+.cepha-mt-sm { margin-top: var(--cepha-space-sm); }
+.cepha-mt-md { margin-top: var(--cepha-space-md); }
+.cepha-mt-lg { margin-top: var(--cepha-space-lg); }
+.cepha-mb-sm { margin-bottom: var(--cepha-space-sm); }
+.cepha-mb-md { margin-bottom: var(--cepha-space-md); }
+.cepha-mb-lg { margin-bottom: var(--cepha-space-lg); }
+.cepha-p-md { padding: var(--cepha-space-md); }
+.cepha-p-lg { padding: var(--cepha-space-lg); }
+
+.cepha-text-center { text-align: center; }
+.cepha-text-right { text-align: right; }
+.cepha-w-full { width: 100%; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .cepha-grid-2,
+    .cepha-grid-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .cepha-dialog {
+        min-width: auto;
+        margin: var(--cepha-space-md);
+        max-width: calc(100vw - 32px);
+    }
+
+    .cepha-appbar {
+        padding: 0 var(--cepha-space-md);
+    }
+}
+
+/* ── Animations ──────────────────────────────────────────────── */
+
+.cepha-fade-in {
+    animation: cepha-fadeIn 0.3s ease-out;
+}
+
+@keyframes cepha-fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.cepha-slide-up {
+    animation: cepha-slideUp 0.3s ease-out;
+}
+
+@keyframes cepha-slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Secure Form Layout (login/register) ─────────────────────── */
+
+.cepha-auth-card {
+    max-width: 420px;
+    margin: var(--cepha-space-2xl) auto;
+    padding: var(--cepha-space-2xl);
+    background: var(--cepha-surface-elevated);
+    border-radius: var(--cepha-radius-xl);
+    box-shadow: var(--cepha-shadow-lg);
+}
+
+.cepha-auth-card .cepha-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--cepha-space-sm);
+    margin-bottom: var(--cepha-space-xl);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--cepha-primary);
+}
+
+.cepha-auth-card cepha-secure-field {
+    display: block;
+    margin-bottom: var(--cepha-space-md);
+}
+
+.cepha-auth-card .cepha-input-group {
+    margin-bottom: var(--cepha-space-md);
+}
+
+.cepha-auth-card form {
+    display: flex;
+    flex-direction: column;
+}
+
+.cepha-auth-card .cepha-alert {
+    margin-bottom: var(--cepha-space-md);
+}
+
+/* ── Material Layout Overrides (cepha.css enhancement) ────────── */
+
+.cepha-ui .cepha-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--cepha-space-xl);
+    height: 64px;
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    color: #fff;
+    box-shadow: var(--cepha-shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.cepha-ui .cepha-nav-brand a {
+    color: #fff;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+}
+
+.cepha-ui .cepha-nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--cepha-space-lg);
+}
+
+.cepha-ui .cepha-nav-links a {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: var(--cepha-radius);
+    transition: all var(--cepha-transition);
+}
+
+.cepha-ui .cepha-nav-links a:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.cepha-ui .cepha-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--cepha-space-2xl) var(--cepha-space-xl);
+    min-height: calc(100vh - 64px - 60px);
+}
+
+.cepha-ui .cepha-hero {
+    text-align: center;
+    padding: var(--cepha-space-2xl) 0;
+    margin-bottom: var(--cepha-space-xl);
+}
+
+.cepha-ui .cepha-hero h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--cepha-primary), var(--cepha-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--cepha-space-md);
+    letter-spacing: -0.5px;
+}
+
+.cepha-ui .cepha-hero .lead {
+    font-size: 1.15rem;
+    color: var(--cepha-text-secondary);
+    margin-bottom: var(--cepha-space-sm);
+}
+
+.cepha-ui .cepha-hero .text-muted {
+    font-size: 0.9rem;
+    color: var(--cepha-text-secondary);
+}
+
+.cepha-ui .cepha-hero .text-muted strong {
+    color: var(--cepha-primary);
+    font-weight: 600;
+}
+
+.cepha-ui .cepha-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--cepha-space-lg);
+    margin-top: var(--cepha-space-lg);
+}
+
+.cepha-ui .cepha-features .cepha-card {
+    background: var(--cepha-surface-elevated);
+    border: 1px solid var(--cepha-border);
+    border-radius: var(--cepha-radius-lg);
+    box-shadow: var(--cepha-shadow);
+    transition: all var(--cepha-transition);
+    overflow: hidden;
+}
+
+.cepha-ui .cepha-features .cepha-card:hover {
+    box-shadow: var(--cepha-shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--cepha-primary-light);
+}
+
+.cepha-ui .cepha-features .cepha-card-body {
+    padding: var(--cepha-space-xl);
+}
+
+.cepha-ui .cepha-features .cepha-card-body h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: var(--cepha-space-sm);
+    color: var(--cepha-text);
+}
+
+.cepha-ui .cepha-features .cepha-card-body p {
+    font-size: 0.9rem;
+    color: var(--cepha-text-secondary);
+    line-height: 1.6;
+}
+
+.cepha-ui .cepha-footer {
+    text-align: center;
+    padding: var(--cepha-space-lg) var(--cepha-space-xl);
+    color: var(--cepha-text-secondary);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--cepha-divider);
+    background: var(--cepha-surface);
+}
+
+.cepha-ui .cepha-footer a {
+    color: var(--cepha-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.cepha-ui .cepha-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Auth button overrides for Material navbar */
+.cepha-ui .cepha-nav .cepha-auth-btn-outline {
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.cepha-ui .cepha-nav .cepha-auth-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.7);
+}
+
+.cepha-ui .cepha-nav .cepha-auth-btn-primary {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    backdrop-filter: blur(4px);
+}
+
+.cepha-ui .cepha-nav .cepha-auth-btn-primary:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.cepha-ui .cepha-nav .cepha-auth-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Responsive Material Layout ──────────────────────────────── */
+
+@media (max-width: 768px) {
+    .cepha-ui .cepha-nav {
+        padding: 0 var(--cepha-space-md);
+        height: 56px;
+    }
+
+    .cepha-ui .cepha-hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .cepha-ui .cepha-features {
+        grid-template-columns: 1fr;
+    }
+
+    .cepha-ui .cepha-main {
+        padding: var(--cepha-space-lg) var(--cepha-space-md);
+    }
+}
+
+/* ── Print ───────────────────────────────────────────────────── */
+
+@media print {
+    .cepha-appbar,
+    .cepha-drawer,
+    .cepha-snackbar,
+    .cepha-dialog-overlay {
+        display: none !important;
+    }
+}

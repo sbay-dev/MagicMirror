@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MagicMirror.Native/MagicMirror.Native.csproj" />
+  <Project Path="MagicMirror/MagicMirror.csproj" />
+</Solution>

@@ -1,0 +1,1144 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * 🧬 CMUI-Mob — Cepha Material UI Mobile
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Spec-accurate native mobile UI components for Android + iOS.
+ * NOT a copy — this IS the native implementation for Cepha ViewEngine.
+ *
+ * Android → Material Design 3   (m3.material.io)
+ * iOS     → Human Interface Guidelines (developer.apple.com/design)
+ *
+ * Implemented from first principles — zero external dependencies.
+ *
+ * Token architecture:
+ *   --md3-*          MD3 design tokens (color, shape, motion, elevation, type)
+ *   --hig-*          iOS HIG design tokens (color, typography, layout)
+ *   .md3-btn-*       Android button components
+ *   .hig-btn-*       iOS button components
+ *   .md3-ripple      Ripple surface (managed by cepha-platform.js)
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  1. COLOR TOKENS — Material Design 3 Baseline                             │
+ * │  Source: https://m3.material.io/styles/color/static/baseline              │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    /* ── Primary ── */
+    --md3-primary:               #6750A4;
+    --md3-on-primary:            #FFFFFF;
+    --md3-primary-container:     #EADDFF;
+    --md3-on-primary-container:  #21005D;
+
+    /* ── Secondary ── */
+    --md3-secondary:               #625B71;
+    --md3-on-secondary:            #FFFFFF;
+    --md3-secondary-container:     #E8DEF8;
+    --md3-on-secondary-container:  #1D192B;
+
+    /* ── Tertiary ── */
+    --md3-tertiary:               #7D5260;
+    --md3-on-tertiary:            #FFFFFF;
+    --md3-tertiary-container:     #FFD8E4;
+    --md3-on-tertiary-container:  #31111D;
+
+    /* ── Error ── */
+    --md3-error:               #B3261E;
+    --md3-on-error:            #FFFFFF;
+    --md3-error-container:     #F9DEDC;
+    --md3-on-error-container:  #410E0B;
+
+    /* ── Surface ── */
+    --md3-surface:              #FEF7FF;
+    --md3-surface-dim:          #DED8E1;
+    --md3-surface-bright:       #FEF7FF;
+    --md3-on-surface:           #1D1B20;
+    --md3-on-surface-variant:   #49454F;
+    --md3-surface-container-lowest:  #FFFFFF;
+    --md3-surface-container-low:     #F7F2FA;
+    --md3-surface-container:         #F3EDF7;
+    --md3-surface-container-high:    #ECE6F0;
+    --md3-surface-container-highest: #E6E0E9;
+
+    /* ── Outline ── */
+    --md3-outline:         #79747E;
+    --md3-outline-variant: #CAC4D0;
+
+    /* ── Inverse ── */
+    --md3-inverse-surface:     #322F35;
+    --md3-inverse-on-surface:  #F5EFF7;
+    --md3-inverse-primary:     #D0BCFF;
+
+    /* ── Fixed ── */
+    --md3-primary-fixed:         #EADDFF;
+    --md3-on-primary-fixed:      #21005D;
+    --md3-secondary-fixed:       #E8DEF8;
+    --md3-on-secondary-fixed:    #1D192B;
+    --md3-tertiary-fixed:        #FFD8E4;
+    --md3-on-tertiary-fixed:     #31111D;
+
+    /* ── Shadow / Scrim ── */
+    --md3-shadow: #000000;
+    --md3-scrim:  #000000;
+}
+
+/* ── Dark Scheme ── */
+[data-theme="dark"],
+[data-platform="android"][data-theme="dark"] {
+    --md3-primary:               #D0BCFF;
+    --md3-on-primary:            #381E72;
+    --md3-primary-container:     #4F378B;
+    --md3-on-primary-container:  #EADDFF;
+
+    --md3-secondary:               #CCC2DC;
+    --md3-on-secondary:            #332D41;
+    --md3-secondary-container:     #4A4458;
+    --md3-on-secondary-container:  #E8DEF8;
+
+    --md3-tertiary:               #EFB8C8;
+    --md3-on-tertiary:            #492532;
+    --md3-tertiary-container:     #633B48;
+    --md3-on-tertiary-container:  #FFD8E4;
+
+    --md3-error:               #F2B8B5;
+    --md3-on-error:            #601410;
+    --md3-error-container:     #8C1D18;
+    --md3-on-error-container:  #F9DEDC;
+
+    --md3-surface:              #141218;
+    --md3-surface-dim:          #141218;
+    --md3-surface-bright:       #3B383E;
+    --md3-on-surface:           #E6E0E9;
+    --md3-on-surface-variant:   #CAC4D0;
+    --md3-surface-container-lowest:  #0F0D13;
+    --md3-surface-container-low:     #1D1B20;
+    --md3-surface-container:         #211F26;
+    --md3-surface-container-high:    #2B2930;
+    --md3-surface-container-highest: #36343B;
+
+    --md3-outline:         #938F99;
+    --md3-outline-variant: #49454F;
+
+    --md3-inverse-surface:     #E6E0E9;
+    --md3-inverse-on-surface:  #322F35;
+    --md3-inverse-primary:     #6750A4;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  2. SHAPE TOKENS — MD3 Shape Scale                                        │
+ * │  Source: https://m3.material.io/styles/shape/overview                     │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    --md3-shape-none:   0px;
+    --md3-shape-xs:     4px;
+    --md3-shape-sm:     8px;
+    --md3-shape-md:     12px;
+    --md3-shape-lg:     16px;
+    --md3-shape-xl:     28px;
+    --md3-shape-full:   9999px;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  3. MOTION TOKENS — MD3 Easing & Duration                                 │
+ * │  Source: https://m3.material.io/styles/motion/easing-and-duration         │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    /* Easing */
+    --md3-ease-emphasized:            cubic-bezier(0.2, 0, 0, 1);
+    --md3-ease-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+    --md3-ease-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+    --md3-ease-standard:              cubic-bezier(0.2, 0, 0, 1);
+    --md3-ease-standard-decelerate:   cubic-bezier(0, 0, 0, 1);
+    --md3-ease-standard-accelerate:   cubic-bezier(0.3, 0, 1, 1);
+
+    /* Duration */
+    --md3-dur-short1:     50ms;
+    --md3-dur-short2:     100ms;
+    --md3-dur-short3:     150ms;
+    --md3-dur-short4:     200ms;
+    --md3-dur-medium1:    250ms;
+    --md3-dur-medium2:    300ms;
+    --md3-dur-medium3:    350ms;
+    --md3-dur-medium4:    400ms;
+    --md3-dur-long1:      450ms;
+    --md3-dur-long2:      500ms;
+    --md3-dur-long3:      550ms;
+    --md3-dur-long4:      600ms;
+    --md3-dur-extra-long1: 700ms;
+    --md3-dur-extra-long2: 800ms;
+    --md3-dur-extra-long3: 900ms;
+    --md3-dur-extra-long4: 1000ms;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  4. ELEVATION TOKENS — MD3 Shadow System                                  │
+ * │  Source: https://m3.material.io/styles/elevation/overview                 │
+ * │  Each level uses key + ambient shadows (two-layer system)                 │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    --md3-elevation-0: none;
+    --md3-elevation-1: 0 1px 2px 0 rgba(0,0,0,0.30),
+                       0 1px 3px 1px rgba(0,0,0,0.15);
+    --md3-elevation-2: 0 1px 2px 0 rgba(0,0,0,0.30),
+                       0 2px 6px 2px rgba(0,0,0,0.15);
+    --md3-elevation-3: 0 1px 3px 0 rgba(0,0,0,0.30),
+                       0 4px 8px 3px rgba(0,0,0,0.15);
+    --md3-elevation-4: 0 2px 3px 0 rgba(0,0,0,0.30),
+                       0 6px 10px 4px rgba(0,0,0,0.15);
+    --md3-elevation-5: 0 4px 4px 0 rgba(0,0,0,0.30),
+                       0 8px 12px 6px rgba(0,0,0,0.15);
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  5. TYPOGRAPHY TOKENS — MD3 Type Scale                                    │
+ * │  Source: https://m3.material.io/styles/typography/type-scale-tokens       │
+ * │  Font: Roboto (Android default)                                           │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    --md3-font-plain:   'Roboto', 'Noto Sans', system-ui, sans-serif;
+    --md3-font-brand:   'Roboto', 'Noto Sans', system-ui, sans-serif;
+
+    /* Display */
+    --md3-display-large:  400 57px/64px var(--md3-font-brand);
+    --md3-display-medium: 400 45px/52px var(--md3-font-brand);
+    --md3-display-small:  400 36px/44px var(--md3-font-brand);
+    --md3-display-large-tracking:  -0.25px;
+    --md3-display-medium-tracking: 0px;
+    --md3-display-small-tracking:  0px;
+
+    /* Headline */
+    --md3-headline-large:  400 32px/40px var(--md3-font-brand);
+    --md3-headline-medium: 400 28px/36px var(--md3-font-brand);
+    --md3-headline-small:  400 24px/32px var(--md3-font-brand);
+    --md3-headline-large-tracking:  0px;
+    --md3-headline-medium-tracking: 0px;
+    --md3-headline-small-tracking:  0px;
+
+    /* Title */
+    --md3-title-large:  400 22px/28px var(--md3-font-brand);
+    --md3-title-medium: 500 16px/24px var(--md3-font-plain);
+    --md3-title-small:  500 14px/20px var(--md3-font-plain);
+    --md3-title-large-tracking:  0px;
+    --md3-title-medium-tracking: 0.15px;
+    --md3-title-small-tracking:  0.1px;
+
+    /* Body */
+    --md3-body-large:  400 16px/24px var(--md3-font-plain);
+    --md3-body-medium: 400 14px/20px var(--md3-font-plain);
+    --md3-body-small:  400 12px/16px var(--md3-font-plain);
+    --md3-body-large-tracking:  0.5px;
+    --md3-body-medium-tracking: 0.25px;
+    --md3-body-small-tracking:  0.4px;
+
+    /* Label */
+    --md3-label-large:  500 14px/20px var(--md3-font-plain);
+    --md3-label-medium: 500 12px/16px var(--md3-font-plain);
+    --md3-label-small:  500 11px/16px var(--md3-font-plain);
+    --md3-label-large-tracking:  0.1px;
+    --md3-label-medium-tracking: 0.5px;
+    --md3-label-small-tracking:  0.5px;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  6. STATE LAYER — MD3 Interaction States                                  │
+ * │  Source: https://m3.material.io/foundations/interaction/states             │
+ * │  opacity values are EXACT per spec                                        │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+:root,
+[data-platform="android"] {
+    --md3-state-hover:    0.08;
+    --md3-state-focus:    0.10;
+    --md3-state-pressed:  0.10;
+    --md3-state-dragged:  0.16;
+    --md3-state-disabled-container: 0.12;
+    --md3-state-disabled-content:   0.38;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  7. BUTTON COMPONENTS — MD3 Common Button                                 │
+ * │  Source: https://m3.material.io/components/buttons/specs                  │
+ * │  5 types: Filled, Tonal, Elevated, Outlined, Text                        │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+/* ── Base button ── */
+.md3-btn,
+[data-platform="android"] .cepha-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 40px;
+    padding: 0 24px;
+    border: none;
+    border-radius: var(--md3-shape-full);
+    font: var(--md3-label-large);
+    letter-spacing: var(--md3-label-large-tracking);
+    text-decoration: none;
+    text-transform: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    isolation: isolate;
+    transition: box-shadow var(--md3-dur-short3) var(--md3-ease-standard);
+}
+
+/* ── State layer (::before) ── */
+.md3-btn::before,
+[data-platform="android"] .cepha-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--md3-dur-short3) var(--md3-ease-standard);
+    z-index: 1;
+}
+
+/* ── Ripple surface (::after) ── */
+.md3-btn::after,
+[data-platform="android"] .cepha-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ── Icon slot ── */
+.md3-btn .md3-icon,
+[data-platform="android"] .cepha-btn .md3-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-left: -8px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7a. FILLED BUTTON (Primary action)
+ *  Container: primary, Label: on-primary
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-filled,
+[data-platform="android"] .cepha-btn-primary {
+    background: var(--md3-primary);
+    color: var(--md3-on-primary);
+    box-shadow: var(--md3-elevation-0);
+}
+
+.md3-btn-filled::before,
+[data-platform="android"] .cepha-btn-primary::before {
+    background: var(--md3-on-primary);
+}
+
+/* States */
+.md3-btn-filled:hover,
+[data-platform="android"] .cepha-btn-primary:hover {
+    box-shadow: var(--md3-elevation-1);
+}
+.md3-btn-filled:hover::before,
+[data-platform="android"] .cepha-btn-primary:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-filled:focus-visible::before,
+[data-platform="android"] .cepha-btn-primary:focus-visible::before {
+    opacity: var(--md3-state-focus);
+}
+
+.md3-btn-filled:active::before,
+[data-platform="android"] .cepha-btn-primary:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+.md3-btn-filled:active,
+[data-platform="android"] .cepha-btn-primary:active {
+    box-shadow: var(--md3-elevation-0);
+}
+
+/* Disabled */
+.md3-btn-filled:disabled,
+[data-platform="android"] .cepha-btn-primary:disabled {
+    background: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-container) * 100%), transparent);
+    color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-content) * 100%), transparent);
+    box-shadow: var(--md3-elevation-0);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7b. TONAL BUTTON (Secondary action)
+ *  Container: secondary-container, Label: on-secondary-container
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-tonal,
+[data-platform="android"] .cepha-btn-secondary {
+    background: var(--md3-secondary-container);
+    color: var(--md3-on-secondary-container);
+    box-shadow: var(--md3-elevation-0);
+    border: none;
+}
+
+.md3-btn-tonal::before,
+[data-platform="android"] .cepha-btn-secondary::before {
+    background: var(--md3-on-secondary-container);
+}
+
+.md3-btn-tonal:hover,
+[data-platform="android"] .cepha-btn-secondary:hover {
+    box-shadow: var(--md3-elevation-1);
+}
+.md3-btn-tonal:hover::before,
+[data-platform="android"] .cepha-btn-secondary:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-tonal:focus-visible::before,
+[data-platform="android"] .cepha-btn-secondary:focus-visible::before {
+    opacity: var(--md3-state-focus);
+}
+
+.md3-btn-tonal:active::before,
+[data-platform="android"] .cepha-btn-secondary:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+.md3-btn-tonal:active,
+[data-platform="android"] .cepha-btn-secondary:active {
+    box-shadow: var(--md3-elevation-0);
+}
+
+.md3-btn-tonal:disabled,
+[data-platform="android"] .cepha-btn-secondary:disabled {
+    background: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-container) * 100%), transparent);
+    color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-content) * 100%), transparent);
+    box-shadow: var(--md3-elevation-0);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7c. ELEVATED BUTTON
+ *  Container: surface-container-low, Label: primary
+ *  Starts at elevation-1, hover→elevation-2
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-elevated,
+[data-platform="android"] .cepha-btn-success {
+    background: var(--md3-surface-container-low);
+    color: var(--md3-primary);
+    box-shadow: var(--md3-elevation-1);
+    border: none;
+}
+
+.md3-btn-elevated::before,
+[data-platform="android"] .cepha-btn-success::before {
+    background: var(--md3-primary);
+}
+
+.md3-btn-elevated:hover,
+[data-platform="android"] .cepha-btn-success:hover {
+    box-shadow: var(--md3-elevation-2);
+}
+.md3-btn-elevated:hover::before,
+[data-platform="android"] .cepha-btn-success:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-elevated:focus-visible::before,
+[data-platform="android"] .cepha-btn-success:focus-visible::before {
+    opacity: var(--md3-state-focus);
+}
+
+.md3-btn-elevated:active,
+[data-platform="android"] .cepha-btn-success:active {
+    box-shadow: var(--md3-elevation-1);
+}
+.md3-btn-elevated:active::before,
+[data-platform="android"] .cepha-btn-success:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+.md3-btn-elevated:disabled,
+[data-platform="android"] .cepha-btn-success:disabled {
+    background: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-container) * 100%), transparent);
+    color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-content) * 100%), transparent);
+    box-shadow: var(--md3-elevation-0);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7d. OUTLINED BUTTON
+ *  Container: transparent, Border: outline, Label: primary
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-outlined,
+[data-platform="android"] .cepha-btn-outline {
+    background: transparent;
+    color: var(--md3-primary);
+    border: 1px solid var(--md3-outline);
+    box-shadow: var(--md3-elevation-0);
+}
+
+.md3-btn-outlined::before,
+[data-platform="android"] .cepha-btn-outline::before {
+    background: var(--md3-primary);
+}
+
+.md3-btn-outlined:hover::before,
+[data-platform="android"] .cepha-btn-outline:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-outlined:focus-visible,
+[data-platform="android"] .cepha-btn-outline:focus-visible {
+    border-color: var(--md3-primary);
+}
+.md3-btn-outlined:focus-visible::before,
+[data-platform="android"] .cepha-btn-outline:focus-visible::before {
+    opacity: var(--md3-state-focus);
+}
+
+.md3-btn-outlined:active::before,
+[data-platform="android"] .cepha-btn-outline:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+.md3-btn-outlined:disabled,
+[data-platform="android"] .cepha-btn-outline:disabled {
+    color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-content) * 100%), transparent);
+    border-color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-container) * 100%), transparent);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7e. TEXT BUTTON (Ghost)
+ *  Container: none, Label: primary
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-text,
+[data-platform="android"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--md3-primary);
+    border: none;
+    box-shadow: var(--md3-elevation-0);
+    padding: 0 12px;
+}
+
+.md3-btn-text::before,
+[data-platform="android"] .cepha-btn-ghost::before {
+    background: var(--md3-primary);
+}
+
+.md3-btn-text:hover::before,
+[data-platform="android"] .cepha-btn-ghost:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-text:focus-visible::before,
+[data-platform="android"] .cepha-btn-ghost:focus-visible::before {
+    opacity: var(--md3-state-focus);
+}
+
+.md3-btn-text:active::before,
+[data-platform="android"] .cepha-btn-ghost:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+.md3-btn-text:disabled,
+[data-platform="android"] .cepha-btn-ghost:disabled {
+    color: color-mix(in srgb, var(--md3-on-surface) calc(var(--md3-state-disabled-content) * 100%), transparent);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  7f. ERROR / DANGER BUTTON
+ *  Container: error, Label: on-error
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.md3-btn-error,
+[data-platform="android"] .cepha-btn-error,
+[data-platform="android"] .cepha-btn-danger {
+    background: var(--md3-error);
+    color: var(--md3-on-error);
+    box-shadow: var(--md3-elevation-0);
+    border: none;
+}
+
+.md3-btn-error::before,
+[data-platform="android"] .cepha-btn-error::before,
+[data-platform="android"] .cepha-btn-danger::before {
+    background: var(--md3-on-error);
+}
+
+.md3-btn-error:hover,
+[data-platform="android"] .cepha-btn-error:hover,
+[data-platform="android"] .cepha-btn-danger:hover {
+    box-shadow: var(--md3-elevation-1);
+}
+.md3-btn-error:hover::before,
+[data-platform="android"] .cepha-btn-error:hover::before,
+[data-platform="android"] .cepha-btn-danger:hover::before {
+    opacity: var(--md3-state-hover);
+}
+
+.md3-btn-error:active,
+[data-platform="android"] .cepha-btn-error:active,
+[data-platform="android"] .cepha-btn-danger:active {
+    box-shadow: var(--md3-elevation-0);
+}
+.md3-btn-error:active::before,
+[data-platform="android"] .cepha-btn-error:active::before,
+[data-platform="android"] .cepha-btn-danger:active::before {
+    opacity: var(--md3-state-pressed);
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  8. BUTTON SIZES — MD3 doesn't define sizes officially but apps use them  │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.md3-btn-sm,
+[data-platform="android"] .cepha-btn-sm {
+    min-height: 32px;
+    padding: 0 16px;
+    font: var(--md3-label-medium);
+    letter-spacing: var(--md3-label-medium-tracking);
+    border-radius: var(--md3-shape-full);
+}
+
+.md3-btn-lg,
+[data-platform="android"] .cepha-btn-lg {
+    min-height: 48px;
+    padding: 0 32px;
+    font: var(--md3-body-large);
+    letter-spacing: var(--md3-body-large-tracking);
+    font-weight: 500;
+    border-radius: var(--md3-shape-full);
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  9. RIPPLE — Real MD3 ripple (managed by cepha-platform.js)               │
+ * │  The JS creates .md3-ripple-wave elements at touch coordinates            │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.md3-ripple-wave {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    transform: scale(0);
+    /* Color is set via JS as currentColor of the state-layer */
+}
+
+/* Growing phase — linear expand per spec */
+.md3-ripple-wave.md3-ripple-growing {
+    animation: md3-ripple-grow var(--md3-dur-long3) linear forwards;
+}
+
+/* Fade-out phase — after pointer up */
+.md3-ripple-wave.md3-ripple-fading {
+    animation: md3-ripple-fade var(--md3-dur-short3) var(--md3-ease-standard) forwards;
+}
+
+@keyframes md3-ripple-grow {
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
+}
+
+@keyframes md3-ripple-fade {
+    from { opacity: var(--md3-state-pressed); }
+    to   { opacity: 0; }
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  10. FOCUS RING — MD3 focus indicator                                     │
+ * │  3px offset, primary color at 100%, rounded to match button               │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.md3-btn:focus-visible,
+[data-platform="android"] .cepha-btn:focus-visible {
+    outline: 3px solid var(--md3-primary);
+    outline-offset: 2px;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  11. TYPOGRAPHY UTILITY CLASSES                                           │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.md3-display-large  { font: var(--md3-display-large);  letter-spacing: var(--md3-display-large-tracking); }
+.md3-display-medium { font: var(--md3-display-medium); letter-spacing: var(--md3-display-medium-tracking); }
+.md3-display-small  { font: var(--md3-display-small);  letter-spacing: var(--md3-display-small-tracking); }
+.md3-headline-large  { font: var(--md3-headline-large);  letter-spacing: var(--md3-headline-large-tracking); }
+.md3-headline-medium { font: var(--md3-headline-medium); letter-spacing: var(--md3-headline-medium-tracking); }
+.md3-headline-small  { font: var(--md3-headline-small);  letter-spacing: var(--md3-headline-small-tracking); }
+.md3-title-large  { font: var(--md3-title-large);  letter-spacing: var(--md3-title-large-tracking); }
+.md3-title-medium { font: var(--md3-title-medium); letter-spacing: var(--md3-title-medium-tracking); }
+.md3-title-small  { font: var(--md3-title-small);  letter-spacing: var(--md3-title-small-tracking); }
+.md3-body-large  { font: var(--md3-body-large);  letter-spacing: var(--md3-body-large-tracking); }
+.md3-body-medium { font: var(--md3-body-medium); letter-spacing: var(--md3-body-medium-tracking); }
+.md3-body-small  { font: var(--md3-body-small);  letter-spacing: var(--md3-body-small-tracking); }
+.md3-label-large  { font: var(--md3-label-large);  letter-spacing: var(--md3-label-large-tracking); }
+.md3-label-medium { font: var(--md3-label-medium); letter-spacing: var(--md3-label-medium-tracking); }
+.md3-label-small  { font: var(--md3-label-small);  letter-spacing: var(--md3-label-small-tracking); }
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  12. SURFACE UTILITY CLASSES                                              │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.md3-surface              { background: var(--md3-surface);                    color: var(--md3-on-surface); }
+.md3-surface-dim          { background: var(--md3-surface-dim);                color: var(--md3-on-surface); }
+.md3-surface-bright       { background: var(--md3-surface-bright);             color: var(--md3-on-surface); }
+.md3-surface-lowest       { background: var(--md3-surface-container-lowest);   color: var(--md3-on-surface); }
+.md3-surface-low          { background: var(--md3-surface-container-low);      color: var(--md3-on-surface); }
+.md3-surface-container    { background: var(--md3-surface-container);          color: var(--md3-on-surface); }
+.md3-surface-high         { background: var(--md3-surface-container-high);     color: var(--md3-on-surface); }
+.md3-surface-highest      { background: var(--md3-surface-container-highest);  color: var(--md3-on-surface); }
+
+.md3-elevation-0 { box-shadow: var(--md3-elevation-0); }
+.md3-elevation-1 { box-shadow: var(--md3-elevation-1); }
+.md3-elevation-2 { box-shadow: var(--md3-elevation-2); }
+.md3-elevation-3 { box-shadow: var(--md3-elevation-3); }
+.md3-elevation-4 { box-shadow: var(--md3-elevation-4); }
+.md3-elevation-5 { box-shadow: var(--md3-elevation-5); }
+
+
+/* ╔═══════════════════════════════════════════════════════════════════════════════╗
+ * ║                                                                             ║
+ * ║   iOS — Apple Human Interface Guidelines (HIG)                              ║
+ * ║   Source: developer.apple.com/design/human-interface-guidelines/buttons      ║
+ * ║                                                                             ║
+ * ║   Button roles: Default, Primary, Cancel, Destructive                       ║
+ * ║   Button styles: Filled (Prominent), Gray (Tinted bg), Tinted, Plain        ║
+ * ║   Sizes: Large (50pt), Medium (38pt), Small (28pt), Mini (22pt)             ║
+ * ║                                                                             ║
+ * ╚═══════════════════════════════════════════════════════════════════════════════╝ */
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  13. iOS COLOR TOKENS — SF Semantic Colors                                │
+ * │  Source: developer.apple.com/design/human-interface-guidelines/color       │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+[data-platform="ios"] {
+    /* ── System Colors (Light) ── */
+    --hig-blue:      #007AFF;
+    --hig-green:     #34C759;
+    --hig-indigo:    #5856D6;
+    --hig-orange:    #FF9500;
+    --hig-pink:      #FF2D55;
+    --hig-purple:    #AF52DE;
+    --hig-red:       #FF3B30;
+    --hig-teal:      #5AC8FA;
+    --hig-yellow:    #FFCC00;
+
+    /* ── UI Element Colors ── */
+    --hig-label:              #000000;
+    --hig-secondary-label:    rgba(60, 60, 67, 0.60);
+    --hig-tertiary-label:     rgba(60, 60, 67, 0.30);
+    --hig-quaternary-label:   rgba(60, 60, 67, 0.18);
+    --hig-placeholder:        rgba(60, 60, 67, 0.30);
+    --hig-separator:          rgba(60, 60, 67, 0.29);
+    --hig-opaque-separator:   #C6C6C8;
+    --hig-link:               #007AFF;
+
+    /* ── System Backgrounds ── */
+    --hig-system-bg:            #FFFFFF;
+    --hig-secondary-system-bg:  #F2F2F7;
+    --hig-tertiary-system-bg:   #FFFFFF;
+    --hig-system-grouped-bg:           #F2F2F7;
+    --hig-secondary-system-grouped-bg: #FFFFFF;
+    --hig-tertiary-system-grouped-bg:  #F2F2F7;
+
+    /* ── Fill Colors ── */
+    --hig-system-fill:          rgba(120, 120, 128, 0.20);
+    --hig-secondary-fill:      rgba(120, 120, 128, 0.16);
+    --hig-tertiary-fill:       rgba(120, 120, 128, 0.12);
+    --hig-quaternary-fill:     rgba(120, 120, 128, 0.08);
+
+    /* ── Typography ── */
+    --hig-font: -apple-system, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    --hig-font-rounded: 'SF Pro Rounded', -apple-system, 'SF Pro Text', sans-serif;
+
+    /* ── Animation ── */
+    --hig-spring: cubic-bezier(0.28, 0.11, 0.32, 1);
+    --hig-ease:   cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --hig-dur-press: 100ms;
+    --hig-dur-release: 400ms;
+
+    /* ── Button geometry ── */
+    --hig-btn-radius-lg: 12px;
+    --hig-btn-radius-md: 100px;
+    --hig-btn-radius-sm: 100px;
+    --hig-btn-radius-mini: 100px;
+}
+
+/* ── iOS Dark ── */
+[data-platform="ios"][data-theme="dark"] {
+    --hig-blue:      #0A84FF;
+    --hig-green:     #30D158;
+    --hig-indigo:    #5E5CE6;
+    --hig-orange:    #FF9F0A;
+    --hig-pink:      #FF375F;
+    --hig-purple:    #BF5AF2;
+    --hig-red:       #FF453A;
+    --hig-teal:      #64D2FF;
+    --hig-yellow:    #FFD60A;
+
+    --hig-label:              #FFFFFF;
+    --hig-secondary-label:    rgba(235, 235, 245, 0.60);
+    --hig-tertiary-label:     rgba(235, 235, 245, 0.30);
+    --hig-quaternary-label:   rgba(235, 235, 245, 0.18);
+    --hig-placeholder:        rgba(235, 235, 245, 0.30);
+    --hig-separator:          rgba(84, 84, 88, 0.65);
+    --hig-opaque-separator:   #38383A;
+    --hig-link:               #0A84FF;
+
+    --hig-system-bg:            #000000;
+    --hig-secondary-system-bg:  #1C1C1E;
+    --hig-tertiary-system-bg:   #2C2C2E;
+    --hig-system-grouped-bg:           #000000;
+    --hig-secondary-system-grouped-bg: #1C1C1E;
+    --hig-tertiary-system-grouped-bg:  #2C2C2E;
+
+    --hig-system-fill:          rgba(120, 120, 128, 0.36);
+    --hig-secondary-fill:      rgba(120, 120, 128, 0.32);
+    --hig-tertiary-fill:       rgba(120, 120, 128, 0.24);
+    --hig-quaternary-fill:     rgba(120, 120, 128, 0.18);
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  14. iOS TYPOGRAPHY — SF Pro Dynamic Type Scale                           │
+ * │  Source: developer.apple.com/design/human-interface-guidelines/typography  │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+[data-platform="ios"] {
+    --hig-large-title:  700 34px/41px var(--hig-font);
+    --hig-title1:       400 28px/34px var(--hig-font);
+    --hig-title2:       400 22px/28px var(--hig-font);
+    --hig-title3:       400 20px/25px var(--hig-font);
+    --hig-headline:     600 17px/22px var(--hig-font);
+    --hig-body:         400 17px/22px var(--hig-font);
+    --hig-callout:      400 16px/21px var(--hig-font);
+    --hig-subheadline:  400 15px/20px var(--hig-font);
+    --hig-footnote:     400 13px/18px var(--hig-font);
+    --hig-caption1:     400 12px/16px var(--hig-font);
+    --hig-caption2:     400 11px/13px var(--hig-font);
+
+    /* Button-specific text styles */
+    --hig-btn-font-lg:   600 17px/22px var(--hig-font);
+    --hig-btn-font-md:   400 15px/20px var(--hig-font);
+    --hig-btn-font-sm:   400 13px/18px var(--hig-font);
+    --hig-btn-font-mini: 400 11px/13px var(--hig-font);
+
+    /* SF Pro tracking (letter-spacing) */
+    --hig-tracking-tight: -0.41px;
+    --hig-tracking-regular: -0.24px;
+    --hig-tracking-loose: 0.07px;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  15. iOS BASE BUTTON — shared across all styles                           │
+ * │  iOS buttons do NOT use ripple — they use opacity dim + spring scale      │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.hig-btn,
+[data-platform="ios"] .cepha-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-height: 50px;
+    padding: 0 20px;
+    border: none;
+    border-radius: var(--hig-btn-radius-lg);
+    font: var(--hig-btn-font-lg);
+    letter-spacing: var(--hig-tracking-tight);
+    text-decoration: none;
+    text-transform: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
+    box-shadow: none;
+    outline: none;
+    transition: opacity var(--hig-dur-release) var(--hig-spring),
+                transform var(--hig-dur-release) var(--hig-spring);
+}
+
+/* iOS press feedback — dim + subtle scale (NOT ripple) */
+.hig-btn:active,
+[data-platform="ios"] .cepha-btn:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+    transition-duration: var(--hig-dur-press);
+}
+
+/* No state layer for iOS */
+.hig-btn::before,
+[data-platform="ios"] .cepha-btn::before { display: none; }
+.hig-btn::after,
+[data-platform="ios"] .cepha-btn::after { display: none; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15a. FILLED BUTTON (Prominent / Primary)
+ *  Used for primary actions — most visually prominent
+ *  Container: tintColor, Label: white
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-filled,
+[data-platform="ios"] .cepha-btn-primary {
+    background: var(--hig-blue);
+    color: #FFFFFF;
+}
+
+/* Disabled */
+.hig-btn-filled:disabled,
+[data-platform="ios"] .cepha-btn-primary:disabled {
+    background: var(--hig-quaternary-fill);
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15b. GRAY BUTTON (Secondary / Tinted background)
+ *  Container: secondarySystemFill, Label: tintColor
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-gray,
+[data-platform="ios"] .cepha-btn-secondary {
+    background: var(--hig-secondary-fill);
+    color: var(--hig-blue);
+    border: none;
+}
+
+.hig-btn-gray:disabled,
+[data-platform="ios"] .cepha-btn-secondary:disabled {
+    background: var(--hig-quaternary-fill);
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15c. TINTED BUTTON (Outline equivalent)
+ *  Container: tintColor @ 15%, Label: tintColor
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-tinted,
+[data-platform="ios"] .cepha-btn-outline {
+    background: color-mix(in srgb, var(--hig-blue) 15%, transparent);
+    color: var(--hig-blue);
+    border: none;
+}
+
+.hig-btn-tinted:disabled,
+[data-platform="ios"] .cepha-btn-outline:disabled {
+    background: var(--hig-quaternary-fill);
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15d. PLAIN BUTTON (Text / Ghost)
+ *  Container: none, Label: tintColor
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-plain,
+[data-platform="ios"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--hig-blue);
+    border: none;
+    padding: 0 12px;
+    min-height: auto;
+}
+
+.hig-btn-plain:disabled,
+[data-platform="ios"] .cepha-btn-ghost:disabled {
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15e. SUCCESS BUTTON
+ *  Container: systemGreen, Label: white
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-success,
+[data-platform="ios"] .cepha-btn-success {
+    background: var(--hig-green);
+    color: #FFFFFF;
+    border: none;
+    box-shadow: none;
+}
+
+.hig-btn-success:disabled,
+[data-platform="ios"] .cepha-btn-success:disabled {
+    background: var(--hig-quaternary-fill);
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+ *  15f. DESTRUCTIVE BUTTON
+ *  Container: systemRed, Label: white
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+.hig-btn-destructive,
+[data-platform="ios"] .cepha-btn-error,
+[data-platform="ios"] .cepha-btn-danger {
+    background: var(--hig-red);
+    color: #FFFFFF;
+    border: none;
+}
+
+.hig-btn-destructive:disabled,
+[data-platform="ios"] .cepha-btn-error:disabled,
+[data-platform="ios"] .cepha-btn-danger:disabled {
+    background: var(--hig-quaternary-fill);
+    color: var(--hig-tertiary-label);
+    cursor: default;
+    pointer-events: none;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  16. iOS BUTTON SIZES                                                     │
+ * │  Large=50pt, Medium=38pt (default iOS 15+ style), Small=28pt, Mini=22pt   │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+/* Default is Large (50pt) — defined in base */
+
+.hig-btn-md,
+[data-platform="ios"] .cepha-btn-md {
+    min-height: 38px;
+    padding: 0 16px;
+    font: var(--hig-btn-font-md);
+    letter-spacing: var(--hig-tracking-regular);
+    border-radius: var(--hig-btn-radius-md);
+}
+
+.hig-btn-sm,
+[data-platform="ios"] .cepha-btn-sm {
+    min-height: 28px;
+    padding: 0 12px;
+    font: var(--hig-btn-font-sm);
+    letter-spacing: var(--hig-tracking-regular);
+    border-radius: var(--hig-btn-radius-sm);
+}
+
+.hig-btn-mini,
+[data-platform="ios"] .cepha-btn-mini {
+    min-height: 22px;
+    padding: 0 8px;
+    font: var(--hig-btn-font-mini);
+    letter-spacing: var(--hig-tracking-loose);
+    border-radius: var(--hig-btn-radius-mini);
+}
+
+.hig-btn-lg,
+[data-platform="ios"] .cepha-btn-lg {
+    min-height: 56px;
+    padding: 0 28px;
+    font: 700 20px/25px var(--hig-font);
+    letter-spacing: var(--hig-tracking-tight);
+    border-radius: 14px;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  17. iOS FOCUS (keyboard navigation — VoiceOver/Switch Control)           │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.hig-btn:focus-visible,
+[data-platform="ios"] .cepha-btn:focus-visible {
+    outline: 3px solid var(--hig-blue);
+    outline-offset: 3px;
+    border-radius: inherit;
+}
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  18. iOS TYPOGRAPHY UTILITY CLASSES                                       │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.hig-large-title { font: var(--hig-large-title); }
+.hig-title1      { font: var(--hig-title1); }
+.hig-title2      { font: var(--hig-title2); }
+.hig-title3      { font: var(--hig-title3); }
+.hig-headline    { font: var(--hig-headline); }
+.hig-body        { font: var(--hig-body);     letter-spacing: var(--hig-tracking-regular); }
+.hig-callout     { font: var(--hig-callout);  letter-spacing: var(--hig-tracking-regular); }
+.hig-subheadline { font: var(--hig-subheadline); }
+.hig-footnote    { font: var(--hig-footnote); }
+.hig-caption1    { font: var(--hig-caption1); }
+.hig-caption2    { font: var(--hig-caption2); }
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  19. iOS SURFACE UTILITY CLASSES                                          │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+.hig-bg              { background: var(--hig-system-bg);           color: var(--hig-label); }
+.hig-bg-secondary    { background: var(--hig-secondary-system-bg); color: var(--hig-label); }
+.hig-bg-tertiary     { background: var(--hig-tertiary-system-bg);  color: var(--hig-label); }
+.hig-bg-grouped      { background: var(--hig-system-grouped-bg);   color: var(--hig-label); }
+
+
+/* ┌─────────────────────────────────────────────────────────────────────────────┐
+ * │  20. SHARED — Link-as-button reset                                        │
+ * └─────────────────────────────────────────────────────────────────────────────┘ */
+
+[data-platform="android"] a.cepha-btn,
+[data-platform="ios"] a.cepha-btn,
+a.md3-btn,
+a.hig-btn {
+    text-decoration: none;
+    cursor: pointer;
+}

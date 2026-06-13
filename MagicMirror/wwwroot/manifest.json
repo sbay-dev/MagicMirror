@@ -1,0 +1,14 @@
+{
+  "name": "MagicMirror",
+  "short_name": "MagicMirror",
+  "description": "MagicMirror — .NET MVC in WebAssembly",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e17",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "icons": [
+    { "src": "favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ],
+  "categories": ["productivity"]
+}

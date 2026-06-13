@@ -1,0 +1,45 @@
+@model List<CatalogItem>
+@{
+    ViewData["Title"] = "Add-on Catalog";
+}
+
+<div class="cepha-hero">
+    <h1>📦 Add-on Catalog</h1>
+    <p class="lead">Browse available capabilities for your Cepha application</p>
+</div>
+
+<div class="cepha-features">
+    @foreach (var addon in Model)
+    {
+    <div class="cepha-card">
+        <div class="cepha-card-body">
+            <h3>@addon.Name</h3>
+            <p>@addon.Description</p>
+            <div class="specs">
+                <span>📦 @addon.Size</span>
+                <span>🏷️ @addon.Tier</span>
+            </div>
+
+            @if (addon.IsBound)
+            {
+            <div style="display:flex;align-items:center;gap:.5rem;margin-top:.75rem">
+                <span class="cepha-chip cepha-chip-success">✅ Bound</span>
+                <span style="font-size:.8rem;color:var(--cepha-text-secondary,#666)">Included in your build</span>
+            </div>
+            }
+            else
+            {
+            <div style="display:flex;align-items:center;gap:.5rem;margin-top:.75rem">
+                <span class="cepha-chip">🔒 Not Bound</span>
+                <a href="/showcase/passkeys" class="cepha-btn cepha-btn-outline" style="font-size:.8rem">Bind with PassKey →</a>
+            </div>
+            }
+        </div>
+    </div>
+    }
+</div>
+
+<style>
+    .specs { display:flex; gap:1rem; margin:.75rem 0; font-size:.85rem; color:var(--cepha-text-secondary,#888) }
+    .specs span { display:inline-flex; align-items:center; gap:.25rem }
+</style>

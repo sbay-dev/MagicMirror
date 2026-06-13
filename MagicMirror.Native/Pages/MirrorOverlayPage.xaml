@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MagicMirror.Native.Pages.MirrorOverlayPage"
+             BackgroundColor="Transparent">
+    <Grid BackgroundColor="Transparent">
+        <GraphicsView x:Name="Canvas" BackgroundColor="Transparent">
+            <GraphicsView.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnDragSurface" />
+                <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnDoubleTapSurface" />
+            </GraphicsView.GestureRecognizers>
+        </GraphicsView>
+
+        <!-- Holographic glass toolbar (draggable) -->
+        <Border x:Name="Toolbar" VerticalOptions="Start" HeightRequest="48"
+                StrokeThickness="1" Padding="10,3" Margin="6,6,6,0">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <Border.Stroke>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#5522E5FF" Offset="0" />
+                    <GradientStop Color="#55A855F7" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Stroke>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Color="#E60A1326" Offset="0" />
+                    <GradientStop Color="#CC0A0E1A" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Shadow>
+                <Shadow Brush="#22E5FF" Offset="0,0" Radius="22" Opacity="0.5" />
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnDragToolbar" />
+            </Border.GestureRecognizers>
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                <Label Grid.Column="0" Text="🪞" FontSize="17" VerticalOptions="Center" Margin="2,0,2,0" />
+
+                <Label Grid.Column="1" x:Name="LblStatus" Text="جاهز" FontSize="11"
+                       TextColor="#9FE9FF" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+
+                <Button Grid.Column="2" x:Name="BtnSmaller" Text="A−" Clicked="OnSmaller"
+                        FontSize="13" Padding="8,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="3" x:Name="BtnBigger" Text="A+" Clicked="OnBigger"
+                        FontSize="13" Padding="8,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="4" x:Name="BtnMode" Text="مقروء" Clicked="OnCycleMode"
+                        FontSize="11" Padding="6,0" HeightRequest="34" CornerRadius="9"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+
+                <Button Grid.Column="5" x:Name="BtnCopyOriginal" Text="⧉ أصل" Clicked="OnCopyOriginal"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="9" IsEnabled="False"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="6" x:Name="BtnCopyTranslated" Text="⧉ ترجمة" Clicked="OnCopyTranslated"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="9" IsEnabled="False"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+
+                <Button Grid.Column="7" x:Name="BtnTranslate" Text="⟐ ترجم" Clicked="OnTranslate"
+                        FontSize="13" FontAttributes="Bold" Padding="12,0" HeightRequest="34" CornerRadius="10"
+                        TextColor="White">
+                    <Button.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#22E5FF" Offset="0" />
+                            <GradientStop Color="#3B82F6" Offset="0.5" />
+                            <GradientStop Color="#A855F7" Offset="1" />
+                        </LinearGradientBrush>
+                    </Button.Background>
+                    <Button.Shadow>
+                        <Shadow Brush="#22E5FF" Offset="0,0" Radius="14" Opacity="0.8" />
+                    </Button.Shadow>
+                </Button>
+
+                <Button Grid.Column="8" x:Name="BtnScrollUp" Text="↑" Clicked="OnScrollUp"
+                        FontSize="13" Padding="4,0" WidthRequest="34" HeightRequest="34" CornerRadius="9" IsEnabled="False"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="9" x:Name="BtnScrollDown" Text="↓" Clicked="OnScrollDown"
+                        FontSize="13" Padding="4,0" WidthRequest="34" HeightRequest="34" CornerRadius="9" IsEnabled="False"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+
+                <Button Grid.Column="10" x:Name="BtnLive" Text="👁" Clicked="OnToggleLive"
+                        FontSize="13" Padding="6,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="11" x:Name="BtnClose" Text="✕" Clicked="OnClose"
+                        FontSize="13" Padding="6,0" WidthRequest="38" HeightRequest="34" CornerRadius="9"
+                        BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
+            </Grid>
+        </Border>
+
+        <Border x:Name="Stylebar" VerticalOptions="Start" HorizontalOptions="End" HeightRequest="48"
+                StrokeThickness="1" Padding="8,6" Margin="6,58,6,0">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
+            <Border.Stroke>
+                <SolidColorBrush Color="#3322E5FF" />
+            </Border.Stroke>
+            <Border.Background>
+                <SolidColorBrush Color="#B30A1326" />
+            </Border.Background>
+            <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
+                <Button Grid.Column="0" x:Name="BtnBgColor" Text="▣ خلفية" Clicked="OnCycleBackgroundColor"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="1" x:Name="BtnBgOpacity" Text="◌ 72%" Clicked="OnCycleBackgroundOpacity"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
+                <Button Grid.Column="2" x:Name="BtnTextColor" Text="حبر" Clicked="OnCycleTextColor"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+            </Grid>
+        </Border>
+
+        <Border x:Name="DictionaryPanel" IsVisible="False" VerticalOptions="End" HorizontalOptions="End"
+                WidthRequest="390" StrokeThickness="1" Padding="10" Margin="8">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <Border.Stroke>
+                <SolidColorBrush Color="#5522E5FF" />
+            </Border.Stroke>
+            <Border.Background>
+                <SolidColorBrush Color="#EE0A1326" />
+            </Border.Background>
+            <VerticalStackLayout Spacing="8">
+                <Label Text="انقر على أي كلمة في المرآة للاختيار، واسحب هذه البطاقة عند الحاجة" FontSize="10"
+                       TextColor="#7EDBFF" Opacity="0.75">
+                    <Label.GestureRecognizers>
+                        <PanGestureRecognizer PanUpdated="OnDictionaryPanelPan" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                    <Label Grid.Column="0" x:Name="LblDictionarySelection" Text="النص المحدد"
+                           FontSize="12" TextColor="#D7F6FF" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                    <Button Grid.Column="1" x:Name="BtnDictionaryExplain" Text="معجم" Clicked="OnDictionaryExplain"
+                            FontSize="11" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="2" Text="×" Clicked="OnDictionaryClose"
+                            FontSize="12" Padding="7,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
+                </Grid>
+                <ScrollView HeightRequest="210">
+                    <Label x:Name="LblDictionaryResult" Text="انقر معجم للحصول على بدائل وسياقات المصطلح."
+                           FontSize="12" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.18" />
+                </ScrollView>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Resize grip -->
+        <Label x:Name="Grip" Text="◢" VerticalOptions="End" HorizontalOptions="End"
+               Margin="0,0,3,3" FontSize="20" TextColor="#9922E5FF">
+            <Label.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnResizeGrip" />
+            </Label.GestureRecognizers>
+        </Label>
+    </Grid>
+</ContentPage>

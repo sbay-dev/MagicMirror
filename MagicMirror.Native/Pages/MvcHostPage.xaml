@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MagicMirror.Native.Pages.MvcHostPage"
+             Title="Cepha Native"
+             BackgroundColor="#0D1117">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Native header bar -->
+        <Border Grid.Row="0" StrokeShape="RoundRectangle 0" Stroke="Transparent"
+                BackgroundColor="#161B22" Padding="16,12">
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="🧬" FontSize="22" VerticalOptions="Center" />
+                <Label x:Name="LblTitle" Text="Cepha Native" FontSize="18"
+                       FontAttributes="Bold" TextColor="#E6EDF3" VerticalOptions="Center" />
+                <Label x:Name="LblRoute" Text="/" FontSize="13"
+                       TextColor="#8B949E" VerticalOptions="Center" Margin="10,0,0,0" />
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- Native MVC content -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout x:Name="NativeContent" Padding="0" Spacing="0"
+                                 BackgroundColor="#0D1117" />
+        </ScrollView>
+
+        <!-- Native status bar -->
+        <Border Grid.Row="2" StrokeShape="RoundRectangle 0" Stroke="Transparent"
+                BackgroundColor="#161B22" Padding="12,8">
+            <HorizontalStackLayout Spacing="8">
+                <Label x:Name="LblStatus" Text="⏳ Loading..." FontSize="12"
+                       TextColor="#8B949E" VerticalOptions="Center" />
+                <Label x:Name="LblRoutes" Text="" FontSize="12"
+                       TextColor="#58A6FF" VerticalOptions="Center" />
+                <Label x:Name="LblPlatform" Text="" FontSize="12"
+                       TextColor="#238636" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Border>
+
+    </Grid>
+
+</ContentPage>

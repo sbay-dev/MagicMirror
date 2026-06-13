@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MagicMirror.Native.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:MagicMirror.Native.Pages"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="True"
+    Title="Magic Mirror">
+
+    <TabBar>
+        <Tab Title="🪞 Mirror">
+            <ShellContent
+                ContentTemplate="{DataTemplate pages:MirrorPage}"
+                Route="MirrorPage" />
+        </Tab>
+        <Tab Title="🧬 Engine">
+            <ShellContent
+                ContentTemplate="{DataTemplate pages:MvcHostPage}"
+                Route="MvcHostPage" />
+        </Tab>
+    </TabBar>
+
+</Shell>

@@ -1,0 +1,790 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+ * 🧬 Cepha Native — Platform-Specific UI Components
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Transforms .cepha-btn into OS-native-looking buttons via [data-platform]:
+ *
+ *   Android  → Material Design 3   (rounded pill, ripple, elevation)
+ *   iOS      → Cupertino / UIKit   (rounded rect, press-dim, no shadow)
+ *   Windows  → Fluent / WinUI 3    (subtle radius, reveal, border)
+ *   macOS    → AppKit / Catalyst   (bezel rect, subtle gradient)
+ *   Linux    → GTK / Adwaita       (rounded, flat, bold)
+ *   Default  → Cepha design system (unchanged)
+ *
+ * Usage:  <html data-platform="android">  ← set by JS or C#
+ *         <button class="cepha-btn cepha-btn-primary">Save</button>
+ *
+ * The JS file cepha-platform.js auto-detects the platform in browsers.
+ * MAUI hosts set CephaPlatformInfo.Current directly in C#.
+ * ═══════════════════════════════════════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  ANDROID — Material Design 3
+ *  Reference: https://m3.material.io/components/buttons
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="android"] {
+    --native-font: 'Roboto', 'Noto Sans', system-ui, sans-serif;
+    --native-radius: 20px;
+    --native-height: 40px;
+    --native-px: 24px;
+    --native-fs: 14px;
+    --native-fw: 500;
+    --native-letter: 0.01em;
+    --native-primary: #6750A4;
+    --native-on-primary: #FFFFFF;
+    --native-primary-container: #EADDFF;
+    --native-on-primary-container: #21005D;
+    --native-secondary-container: #E8DEF8;
+    --native-on-secondary-container: #1D192B;
+    --native-surface: #FFFBFE;
+    --native-on-surface: #1C1B1F;
+    --native-outline: #79747E;
+    --native-surface-variant: #E7E0EC;
+    --native-elevation-1: 0 1px 2px rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+    --native-elevation-2: 0 1px 2px rgba(0,0,0,.3), 0 2px 6px 2px rgba(0,0,0,.15);
+}
+
+[data-platform="android"][data-theme="dark"] {
+    --native-primary: #D0BCFF;
+    --native-on-primary: #381E72;
+    --native-primary-container: #4F378B;
+    --native-on-primary-container: #EADDFF;
+    --native-secondary-container: #4A4458;
+    --native-on-secondary-container: #E8DEF8;
+    --native-surface: #1C1B1F;
+    --native-on-surface: #E6E1E5;
+    --native-outline: #938F99;
+    --native-surface-variant: #49454F;
+}
+
+/* Base button reset for Android */
+[data-platform="android"] .cepha-btn {
+    font-family: var(--native-font);
+    font-size: var(--native-fs);
+    font-weight: var(--native-fw);
+    letter-spacing: var(--native-letter);
+    min-height: var(--native-height);
+    padding: 0 var(--native-px);
+    border-radius: var(--native-radius);
+    border: none;
+    text-transform: none;
+    box-shadow: none;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Filled button (primary) */
+[data-platform="android"] .cepha-btn-primary {
+    background: var(--native-primary);
+    color: var(--native-on-primary);
+}
+[data-platform="android"] .cepha-btn-primary:hover {
+    box-shadow: var(--native-elevation-1);
+}
+[data-platform="android"] .cepha-btn-primary:active {
+    box-shadow: none;
+}
+
+/* Filled Tonal (secondary) */
+[data-platform="android"] .cepha-btn-secondary {
+    background: var(--native-secondary-container);
+    color: var(--native-on-secondary-container);
+    border: none;
+}
+[data-platform="android"] .cepha-btn-secondary:hover {
+    box-shadow: var(--native-elevation-1);
+}
+
+/* Outlined */
+[data-platform="android"] .cepha-btn-outline {
+    background: transparent;
+    color: var(--native-primary);
+    border: 1px solid var(--native-outline);
+}
+[data-platform="android"] .cepha-btn-outline:hover {
+    background: color-mix(in srgb, var(--native-primary) 8%, transparent);
+}
+
+/* Text button (ghost) */
+[data-platform="android"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--native-primary);
+    border: none;
+    padding: 0 12px;
+}
+[data-platform="android"] .cepha-btn-ghost:hover {
+    background: color-mix(in srgb, var(--native-primary) 8%, transparent);
+}
+
+/* Elevated */
+[data-platform="android"] .cepha-btn-success {
+    background: var(--native-surface);
+    color: var(--native-primary);
+    box-shadow: var(--native-elevation-1);
+    border: none;
+}
+[data-platform="android"] .cepha-btn-success:hover {
+    box-shadow: var(--native-elevation-2);
+}
+
+/* Error / Danger */
+[data-platform="android"] .cepha-btn-error,
+[data-platform="android"] .cepha-btn-danger {
+    background: #B3261E;
+    color: #FFFFFF;
+}
+[data-platform="android"][data-theme="dark"] .cepha-btn-error,
+[data-platform="android"][data-theme="dark"] .cepha-btn-danger {
+    background: #F2B8B5;
+    color: #601410;
+}
+
+/* Sizes */
+[data-platform="android"] .cepha-btn-sm {
+    min-height: 32px;
+    padding: 0 16px;
+    font-size: 12px;
+    border-radius: 16px;
+}
+[data-platform="android"] .cepha-btn-lg {
+    min-height: 48px;
+    padding: 0 32px;
+    font-size: 16px;
+    border-radius: 24px;
+}
+
+/* Material ripple (injected by cepha-platform.js) */
+[data-platform="android"] .cepha-btn .cepha-native-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.12;
+    transform: scale(0);
+    animation: cepha-md-ripple 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes cepha-md-ripple {
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* State layer */
+[data-platform="android"] .cepha-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border-radius: inherit;
+    pointer-events: none;
+}
+[data-platform="android"] .cepha-btn:hover::before { opacity: 0.08; }
+[data-platform="android"] .cepha-btn:focus-visible::before { opacity: 0.12; }
+[data-platform="android"] .cepha-btn:active::before { opacity: 0.12; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  iOS — Cupertino / UIKit
+ *  Reference: Apple Human Interface Guidelines — Buttons
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="ios"] {
+    --native-font: -apple-system, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    --native-radius: 12px;
+    --native-radius-pill: 999px;
+    --native-height: 50px;
+    --native-height-sm: 34px;
+    --native-px: 20px;
+    --native-fs: 17px;
+    --native-fw: 600;
+    --native-blue: #007AFF;
+    --native-blue-dark: #0A84FF;
+    --native-gray: #F2F2F7;
+    --native-gray-dark: #2C2C2E;
+    --native-label: #000000;
+    --native-label-dark: #FFFFFF;
+    --native-secondary-label: #3C3C43;
+}
+
+[data-platform="ios"][data-theme="dark"] {
+    --native-blue: #0A84FF;
+    --native-gray: #2C2C2E;
+    --native-label: #FFFFFF;
+    --native-secondary-label: #EBEBF5;
+}
+
+[data-platform="ios"] .cepha-btn {
+    font-family: var(--native-font);
+    font-size: var(--native-fs);
+    font-weight: var(--native-fw);
+    min-height: var(--native-height);
+    padding: 0 var(--native-px);
+    border-radius: var(--native-radius);
+    border: none;
+    letter-spacing: -0.01em;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+    box-shadow: none;
+    text-transform: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Press feedback — iOS dims, doesn't ripple */
+[data-platform="ios"] .cepha-btn:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+}
+
+/* iOS Filled (Prominent) */
+[data-platform="ios"] .cepha-btn-primary {
+    background: var(--native-blue);
+    color: #FFFFFF;
+    border-radius: var(--native-radius);
+}
+[data-platform="ios"] .cepha-btn-primary:hover {
+    background: var(--native-blue);
+    filter: brightness(1.1);
+}
+
+/* iOS Gray / Secondary */
+[data-platform="ios"] .cepha-btn-secondary {
+    background: var(--native-gray);
+    color: var(--native-blue);
+    border: none;
+}
+[data-platform="ios"][data-theme="dark"] .cepha-btn-secondary {
+    background: var(--native-gray-dark);
+}
+
+/* iOS Tinted (outline) */
+[data-platform="ios"] .cepha-btn-outline {
+    background: color-mix(in srgb, var(--native-blue) 12%, transparent);
+    color: var(--native-blue);
+    border: none;
+}
+
+/* iOS Plain / Text */
+[data-platform="ios"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--native-blue);
+    border: none;
+    padding: 0 8px;
+    min-height: auto;
+}
+
+/* iOS Success (green tint) */
+[data-platform="ios"] .cepha-btn-success {
+    background: #34C759;
+    color: #FFFFFF;
+}
+[data-platform="ios"][data-theme="dark"] .cepha-btn-success {
+    background: #30D158;
+}
+
+/* iOS Destructive */
+[data-platform="ios"] .cepha-btn-error,
+[data-platform="ios"] .cepha-btn-danger {
+    background: #FF3B30;
+    color: #FFFFFF;
+}
+[data-platform="ios"][data-theme="dark"] .cepha-btn-error,
+[data-platform="ios"][data-theme="dark"] .cepha-btn-danger {
+    background: #FF453A;
+}
+
+/* iOS Sizes */
+[data-platform="ios"] .cepha-btn-sm {
+    min-height: var(--native-height-sm);
+    padding: 0 12px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+[data-platform="ios"] .cepha-btn-lg {
+    min-height: 56px;
+    padding: 0 28px;
+    font-size: 20px;
+    font-weight: 700;
+    border-radius: 14px;
+}
+
+/* No pseudo-element state layer for iOS */
+[data-platform="ios"] .cepha-btn::before { display: none; }
+[data-platform="ios"] .cepha-btn::after { display: none; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  WINDOWS — Fluent Design / WinUI 3
+ *  Reference: https://learn.microsoft.com/windows/apps/design/controls/buttons
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="windows"] {
+    --native-font: 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+    --native-radius: 4px;
+    --native-height: 32px;
+    --native-px: 12px;
+    --native-fs: 14px;
+    --native-fw: 400;
+    --native-accent: #005FB8;
+    --native-accent-hover: #1671C4;
+    --native-accent-press: #0050A0;
+    --native-on-accent: #FFFFFF;
+    --native-control-bg: rgba(255,255,255,.0605);
+    --native-control-border: rgba(0,0,0,.0578);
+    --native-control-border-bottom: rgba(0,0,0,.1622);
+    --native-text: #1A1A1A;
+    --native-text-secondary: #616161;
+    --native-subtle-hover: rgba(0,0,0,.0373);
+    --native-subtle-press: rgba(0,0,0,.0241);
+}
+
+[data-platform="windows"][data-theme="dark"] {
+    --native-accent: #60CDFF;
+    --native-accent-hover: #78D5FF;
+    --native-accent-press: #4DC0F0;
+    --native-on-accent: #003E6E;
+    --native-control-bg: rgba(255,255,255,.0605);
+    --native-control-border: rgba(255,255,255,.0698);
+    --native-control-border-bottom: rgba(255,255,255,.0930);
+    --native-text: #FFFFFF;
+    --native-text-secondary: #C5C5C5;
+    --native-subtle-hover: rgba(255,255,255,.0605);
+    --native-subtle-press: rgba(255,255,255,.0419);
+}
+
+[data-platform="windows"] .cepha-btn {
+    font-family: var(--native-font);
+    font-size: var(--native-fs);
+    font-weight: var(--native-fw);
+    min-height: var(--native-height);
+    padding: 4px var(--native-px);
+    border-radius: var(--native-radius);
+    transition: background 0.083s ease, border-color 0.083s ease;
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Accent (primary) */
+[data-platform="windows"] .cepha-btn-primary {
+    background: var(--native-accent);
+    color: var(--native-on-accent);
+    border: 1px solid transparent;
+    border-bottom-color: rgba(0,0,0,.18);
+}
+[data-platform="windows"] .cepha-btn-primary:hover {
+    background: var(--native-accent-hover);
+}
+[data-platform="windows"] .cepha-btn-primary:active {
+    background: var(--native-accent-press);
+    color: color-mix(in srgb, var(--native-on-accent) 70%, transparent);
+    border-bottom-color: transparent;
+}
+
+/* Standard (secondary) */
+[data-platform="windows"] .cepha-btn-secondary {
+    background: var(--native-control-bg);
+    color: var(--native-text);
+    border: 1px solid var(--native-control-border);
+    border-bottom-color: var(--native-control-border-bottom);
+}
+[data-platform="windows"] .cepha-btn-secondary:hover {
+    background: color-mix(in srgb, var(--native-control-bg), rgba(0,0,0,.02));
+}
+[data-platform="windows"] .cepha-btn-secondary:active {
+    background: color-mix(in srgb, var(--native-control-bg), rgba(0,0,0,.05));
+    color: var(--native-text-secondary);
+    border-bottom-color: var(--native-control-border);
+}
+
+/* Subtle / Outline */
+[data-platform="windows"] .cepha-btn-outline {
+    background: transparent;
+    color: var(--native-text);
+    border: 1px solid var(--native-control-border);
+    border-bottom-color: var(--native-control-border-bottom);
+}
+[data-platform="windows"] .cepha-btn-outline:hover {
+    background: var(--native-subtle-hover);
+}
+[data-platform="windows"] .cepha-btn-outline:active {
+    background: var(--native-subtle-press);
+    color: var(--native-text-secondary);
+}
+
+/* Hyperlink / Ghost */
+[data-platform="windows"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--native-accent);
+    border: none;
+    padding: 4px 8px;
+    text-decoration: none;
+}
+[data-platform="windows"] .cepha-btn-ghost:hover {
+    background: var(--native-subtle-hover);
+    text-decoration: underline;
+}
+
+/* Success — accent green */
+[data-platform="windows"] .cepha-btn-success {
+    background: #107C10;
+    color: #FFFFFF;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(0,0,0,.18);
+}
+[data-platform="windows"][data-theme="dark"] .cepha-btn-success {
+    background: #6CCB5F;
+    color: #0E3D0E;
+}
+
+/* Error */
+[data-platform="windows"] .cepha-btn-error,
+[data-platform="windows"] .cepha-btn-danger {
+    background: #C42B1C;
+    color: #FFFFFF;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(0,0,0,.18);
+}
+[data-platform="windows"][data-theme="dark"] .cepha-btn-error,
+[data-platform="windows"][data-theme="dark"] .cepha-btn-danger {
+    background: #FF99A4;
+    color: #68000C;
+}
+
+/* Windows sizes */
+[data-platform="windows"] .cepha-btn-sm {
+    min-height: 24px;
+    padding: 2px 8px;
+    font-size: 12px;
+}
+[data-platform="windows"] .cepha-btn-lg {
+    min-height: 40px;
+    padding: 6px 20px;
+    font-size: 16px;
+}
+
+/* Fluent focus ring */
+[data-platform="windows"] .cepha-btn:focus-visible {
+    outline: 2px solid var(--native-text);
+    outline-offset: 1px;
+    box-shadow: none;
+}
+
+/* No pseudo state layer for Windows */
+[data-platform="windows"] .cepha-btn::before { display: none; }
+[data-platform="windows"] .cepha-btn::after { display: none; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  macOS — AppKit / Catalyst
+ *  Reference: Apple HIG — macOS buttons
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="macos"] {
+    --native-font: -apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif;
+    --native-radius: 6px;
+    --native-height: 22px;
+    --native-px: 14px;
+    --native-fs: 13px;
+    --native-fw: 400;
+    --native-accent: #007AFF;
+    --native-accent-dark: #0A84FF;
+    --native-control-bg: #FFFFFF;
+    --native-control-border: rgba(0,0,0,.12);
+    --native-text: #000000;
+    --native-text-secondary: #8E8E93;
+    --native-shadow: 0 0.5px 1px rgba(0,0,0,.1), 0 0 0 0.5px rgba(0,0,0,.05);
+}
+
+[data-platform="macos"][data-theme="dark"] {
+    --native-accent: #0A84FF;
+    --native-control-bg: rgba(255,255,255,.1);
+    --native-control-border: rgba(255,255,255,.15);
+    --native-text: #FFFFFF;
+    --native-text-secondary: #98989D;
+    --native-shadow: 0 0.5px 1px rgba(0,0,0,.4), 0 0 0 0.5px rgba(255,255,255,.05);
+}
+
+[data-platform="macos"] .cepha-btn {
+    font-family: var(--native-font);
+    font-size: var(--native-fs);
+    font-weight: var(--native-fw);
+    min-height: var(--native-height);
+    padding: 1px var(--native-px);
+    border-radius: var(--native-radius);
+    border: none;
+    box-shadow: var(--native-shadow);
+    text-transform: none;
+    letter-spacing: normal;
+    transition: filter 0.1s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Default push button (primary = accent) */
+[data-platform="macos"] .cepha-btn-primary {
+    background: var(--native-accent);
+    color: #FFFFFF;
+    box-shadow: var(--native-shadow);
+}
+[data-platform="macos"] .cepha-btn-primary:active {
+    filter: brightness(0.85);
+}
+
+/* Standard push button */
+[data-platform="macos"] .cepha-btn-secondary {
+    background: var(--native-control-bg);
+    color: var(--native-text);
+    border: 0.5px solid var(--native-control-border);
+}
+[data-platform="macos"] .cepha-btn-secondary:active {
+    background: color-mix(in srgb, var(--native-control-bg), rgba(0,0,0,.08));
+}
+
+/* Outline / bordered */
+[data-platform="macos"] .cepha-btn-outline {
+    background: transparent;
+    color: var(--native-accent);
+    border: 0.5px solid var(--native-control-border);
+    box-shadow: var(--native-shadow);
+}
+
+/* Link / inline button */
+[data-platform="macos"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--native-accent);
+    border: none;
+    box-shadow: none;
+    padding: 0 6px;
+    min-height: auto;
+}
+[data-platform="macos"] .cepha-btn-ghost:hover {
+    text-decoration: underline;
+    background: transparent;
+}
+
+/* Success */
+[data-platform="macos"] .cepha-btn-success {
+    background: #34C759;
+    color: #FFFFFF;
+}
+[data-platform="macos"][data-theme="dark"] .cepha-btn-success {
+    background: #30D158;
+}
+
+/* Error */
+[data-platform="macos"] .cepha-btn-error,
+[data-platform="macos"] .cepha-btn-danger {
+    background: #FF3B30;
+    color: #FFFFFF;
+}
+[data-platform="macos"][data-theme="dark"] .cepha-btn-error,
+[data-platform="macos"][data-theme="dark"] .cepha-btn-danger {
+    background: #FF453A;
+}
+
+/* macOS sizes — compact by default */
+[data-platform="macos"] .cepha-btn-sm {
+    min-height: 18px;
+    padding: 0 8px;
+    font-size: 11px;
+    border-radius: 4px;
+}
+[data-platform="macos"] .cepha-btn-lg {
+    min-height: 28px;
+    padding: 4px 20px;
+    font-size: 15px;
+    border-radius: 8px;
+}
+
+/* macOS focus */
+[data-platform="macos"] .cepha-btn:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--native-accent) 40%, transparent);
+}
+
+[data-platform="macos"] .cepha-btn::before { display: none; }
+[data-platform="macos"] .cepha-btn::after { display: none; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  LINUX — GTK / Adwaita (GNOME)
+ *  Reference: GNOME HIG — libadwaita buttons
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="linux"] {
+    --native-font: 'Cantarell', 'Noto Sans', 'Ubuntu', system-ui, sans-serif;
+    --native-radius: 8px;
+    --native-height: 34px;
+    --native-px: 16px;
+    --native-fs: 14px;
+    --native-fw: 500;
+    --native-accent: #3584E4;
+    --native-accent-hover: #3987E5;
+    --native-control-bg: #E0E0E0;
+    --native-control-hover: #D5D5D5;
+    --native-text: #2E3436;
+    --native-text-secondary: #77767B;
+    --native-border: rgba(0,0,0,.08);
+}
+
+[data-platform="linux"][data-theme="dark"] {
+    --native-accent: #3584E4;
+    --native-accent-hover: #4A90E8;
+    --native-control-bg: #404040;
+    --native-control-hover: #4A4A4A;
+    --native-text: #FFFFFF;
+    --native-text-secondary: #9A9996;
+    --native-border: rgba(255,255,255,.06);
+}
+
+[data-platform="linux"] .cepha-btn {
+    font-family: var(--native-font);
+    font-size: var(--native-fs);
+    font-weight: var(--native-fw);
+    min-height: var(--native-height);
+    padding: 0 var(--native-px);
+    border-radius: var(--native-radius);
+    border: none;
+    box-shadow: none;
+    text-transform: none;
+    letter-spacing: normal;
+    transition: background 0.1s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Suggested action (primary) */
+[data-platform="linux"] .cepha-btn-primary {
+    background: var(--native-accent);
+    color: #FFFFFF;
+}
+[data-platform="linux"] .cepha-btn-primary:hover {
+    background: var(--native-accent-hover);
+}
+[data-platform="linux"] .cepha-btn-primary:active {
+    filter: brightness(0.9);
+}
+
+/* Standard flat button */
+[data-platform="linux"] .cepha-btn-secondary {
+    background: var(--native-control-bg);
+    color: var(--native-text);
+    border: none;
+}
+[data-platform="linux"] .cepha-btn-secondary:hover {
+    background: var(--native-control-hover);
+}
+
+/* Outline */
+[data-platform="linux"] .cepha-btn-outline {
+    background: transparent;
+    color: var(--native-text);
+    border: 1px solid var(--native-border);
+}
+[data-platform="linux"] .cepha-btn-outline:hover {
+    background: rgba(0,0,0,.04);
+}
+
+/* Flat / ghost */
+[data-platform="linux"] .cepha-btn-ghost {
+    background: transparent;
+    color: var(--native-accent);
+    border: none;
+}
+[data-platform="linux"] .cepha-btn-ghost:hover {
+    background: rgba(0,0,0,.04);
+}
+
+/* Destructive */
+[data-platform="linux"] .cepha-btn-error,
+[data-platform="linux"] .cepha-btn-danger {
+    background: #E01B24;
+    color: #FFFFFF;
+}
+[data-platform="linux"] .cepha-btn-error:hover,
+[data-platform="linux"] .cepha-btn-danger:hover {
+    background: #E72D35;
+}
+
+/* Success */
+[data-platform="linux"] .cepha-btn-success {
+    background: #33D17A;
+    color: #000000;
+}
+[data-platform="linux"][data-theme="dark"] .cepha-btn-success {
+    color: #FFFFFF;
+}
+
+/* Linux sizes */
+[data-platform="linux"] .cepha-btn-sm {
+    min-height: 26px;
+    padding: 0 10px;
+    font-size: 12px;
+}
+[data-platform="linux"] .cepha-btn-lg {
+    min-height: 42px;
+    padding: 0 24px;
+    font-size: 16px;
+}
+
+/* Adwaita focus ring */
+[data-platform="linux"] .cepha-btn:focus-visible {
+    outline: 2px solid var(--native-accent);
+    outline-offset: 2px;
+}
+
+[data-platform="linux"] .cepha-btn::before { display: none; }
+[data-platform="linux"] .cepha-btn::after { display: none; }
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  SHARED — Platform-specific link styling (anchors used as buttons)
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+[data-platform="android"] a.cepha-btn,
+[data-platform="ios"] a.cepha-btn,
+[data-platform="windows"] a.cepha-btn,
+[data-platform="macos"] a.cepha-btn,
+[data-platform="linux"] a.cepha-btn {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ *  ANIMATIONS — Platform-specific transitions
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Android: Material motion — standard easing */
+[data-platform="android"] .cepha-btn {
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* iOS: Spring-like easing */
+[data-platform="ios"] .cepha-btn {
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Windows: Quick, responsive */
+[data-platform="windows"] .cepha-btn {
+    transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+/* macOS: Smooth system animation */
+[data-platform="macos"] .cepha-btn {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Linux: Simple linear-ish */
+[data-platform="linux"] .cepha-btn {
+    transition-timing-function: ease;
+}

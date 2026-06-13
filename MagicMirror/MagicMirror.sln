@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11822.322 stable
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicMirror", "MagicMirror.csproj", "{678F2F2E-C0F9-64AB-D86D-8961A9B67D1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicMirror.Native", "..\MagicMirror.Native\MagicMirror.Native.csproj", "{991B19D0-584D-EAAE-539B-39A17A5FC72F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{678F2F2E-C0F9-64AB-D86D-8961A9B67D1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{678F2F2E-C0F9-64AB-D86D-8961A9B67D1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{678F2F2E-C0F9-64AB-D86D-8961A9B67D1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{678F2F2E-C0F9-64AB-D86D-8961A9B67D1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{991B19D0-584D-EAAE-539B-39A17A5FC72F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{991B19D0-584D-EAAE-539B-39A17A5FC72F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{991B19D0-584D-EAAE-539B-39A17A5FC72F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{991B19D0-584D-EAAE-539B-39A17A5FC72F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {09BA6DEF-0188-4625-BCAD-E39C02E302F7}
+	EndGlobalSection
+EndGlobal

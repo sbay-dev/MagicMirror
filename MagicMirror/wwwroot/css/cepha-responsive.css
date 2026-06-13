@@ -1,0 +1,756 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   CMUI-Responsive — Cepha Adaptive Layout System
+   ═══════════════════════════════════════════════════════════════════════
+   Ensures every pixel of screen space is used with precision.
+   Handles: safe areas, dynamic viewport, all breakpoints, accessibility.
+   Load AFTER all other Cepha CSS files.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Safe Area & Viewport Foundation ─────────────────────────────── */
+
+:root {
+    /* Safe area fallbacks (0px when env() unsupported) */
+    --cepha-safe-top: env(safe-area-inset-top, 0px);
+    --cepha-safe-right: env(safe-area-inset-right, 0px);
+    --cepha-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --cepha-safe-left: env(safe-area-inset-left, 0px);
+
+    /* Responsive spacing scale */
+    --cepha-gutter: clamp(0.75rem, 2vw, 2rem);
+    --cepha-content-max: 960px;
+}
+
+html {
+    /* Prevent horizontal overflow globally */
+    overflow-x: hidden;
+    /* Use dynamic viewport height where supported */
+    height: 100%;
+}
+
+body {
+    min-height: 100dvh;          /* dynamic viewport — respects mobile address bar */
+    min-height: 100vh;           /* fallback for older browsers */
+    overflow-x: hidden;          /* prevent horizontal scroll from any child */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Ensure 100dvh is preferred over 100vh when supported */
+@supports (min-height: 100dvh) {
+    body { min-height: 100dvh; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CMUI-Nav — Adaptive Morphing Navigation
+   ─────────────────────────────────────────────────────────────────────
+   Navigation links are NEVER hidden behind hamburger menus. Instead,
+   on narrow viewports they migrate to a floating glass dock at the
+   bottom of the screen — where thumbs naturally rest (Fitts's Law).
+
+   Layout morphing:
+     Desktop  (>768px)  → Horizontal top bar with pill-hover links
+     Mobile   (≤768px)  → Minimal top bar + floating glass bottom dock
+     Compact  (≤359px)  → Tighter dock pills, condensed brand
+     Landscape (short)  → Slim dock with reduced chrome
+     Watch    (≤200px)  → Micro pill dock
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Dock Design Tokens ─────────────────────────────────────────── */
+
+:root {
+    --cepha-dock-bg: 20, 18, 24;
+    --cepha-dock-border: rgba(255, 255, 255, 0.08);
+    --cepha-dock-glow-rgb: 103, 80, 164;
+    --cepha-dock-pill-hover: rgba(255, 255, 255, 0.08);
+    --cepha-dock-pill-active: rgba(103, 80, 164, 0.22);
+    --cepha-dock-pill-text: #fff;
+    --cepha-dock-list-text: rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] {
+    --cepha-dock-bg: 255, 255, 255;
+    --cepha-dock-border: rgba(0, 0, 0, 0.06);
+    --cepha-dock-pill-hover: rgba(0, 0, 0, 0.05);
+    --cepha-dock-pill-active: rgba(103, 80, 164, 0.12);
+    --cepha-dock-pill-text: #1a1a2e;
+    --cepha-dock-list-text: rgba(26, 26, 46, 0.9);
+}
+
+/* ─── Base Nav — All Viewports ───────────────────────────────────── */
+
+.cepha-nav,
+.cepha-ui .cepha-nav {
+    padding-top: var(--cepha-safe-top);
+    padding-left: max(var(--cepha-gutter), var(--cepha-safe-left));
+    padding-right: max(var(--cepha-gutter), var(--cepha-safe-right));
+    height: auto;
+    min-height: 56px;
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    top: 0;
+}
+
+.cepha-nav-brand,
+.cepha-ui .cepha-nav-brand {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.cepha-nav-brand a,
+.cepha-ui .cepha-nav-brand a {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}
+
+.cepha-theme-toggle { flex-shrink: 0; }
+
+/* ─── Desktop: Premium Top Bar (>768px) ──────────────────────────── */
+
+@media (min-width: 769px) {
+    .cepha-nav-links,
+    .cepha-ui .cepha-nav-links {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.4rem, 1.5vw, 1.25rem);
+        flex-wrap: wrap;
+    }
+
+    .cepha-nav-links a,
+    .cepha-ui .cepha-nav-links a {
+        padding: 6px 14px;
+        border-radius: 20px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .cepha-nav-links a:hover,
+    .cepha-ui .cepha-nav-links a:hover {
+        background: var(--cepha-dock-pill-hover);
+    }
+
+    .cepha-nav-links a.active,
+    .cepha-ui .cepha-nav-links a.active {
+        background: var(--cepha-dock-pill-active);
+    }
+}
+
+/* Desktop landscape with very short height */
+@media (max-height: 500px) and (orientation: landscape) and (min-width: 769px) {
+    .cepha-nav,
+    .cepha-ui .cepha-nav { min-height: 40px; }
+    .cepha-nav-brand a,
+    .cepha-ui .cepha-nav-brand a { font-size: 1rem; }
+    .cepha-nav-links a,
+    .cepha-ui .cepha-nav-links a { font-size: 0.8rem; padding: 4px 12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CMUI-Nav Poker Wheel — Mobile Navigation
+   ─────────────────────────────────────────────────────────────────────
+   Collapsed: single glass pill showing current page name
+   Tap:       3D poker wheel — swipe to spin with momentum physics
+   Long press: vertical quick-jump list
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Hide nav-links on mobile when dock JS is active (prevents FOUC) */
+@media (max-width: 768px) {
+    html.cepha-dock-ready .cepha-nav-links,
+    html.cepha-dock-ready .cepha-ui .cepha-nav-links {
+        display: none;
+    }
+
+    /* Physarum absorbs cx-nav on mobile too */
+    html.cepha-dock-ready .cx-nav__links {
+        display: none !important;
+    }
+
+    /* cx-nav becomes brand-only bar on mobile */
+    html.cepha-dock-ready .cx-nav {
+        justify-content: center;
+        padding: 8px 16px;
+    }
+
+    /* Top bar — brand + toggle only */
+    .cepha-nav,
+    .cepha-ui .cepha-nav {
+        min-height: 48px;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+    }
+
+    /* Body offset for pill space */
+    body.cepha-ui, body {
+        padding-bottom: calc(4.5rem + var(--cepha-safe-bottom));
+    }
+}
+
+/* ─── Dock Pill (collapsed) ──────────────────────────────────────── */
+
+.cepha-dock-pill {
+    position: fixed;
+    bottom: calc(1rem + var(--cepha-safe-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+
+    background: rgba(var(--cepha-dock-bg), 0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+
+    border: 1px solid var(--cepha-dock-border);
+    border-radius: 22px;
+    padding: 10px 24px;
+    min-height: 44px;
+
+    color: var(--cepha-dock-pill-text, #fff);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    cursor: pointer;
+
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.22),
+        0 0 0 0.5px rgba(255, 255, 255, 0.06) inset,
+        0 2px 32px rgba(var(--cepha-dock-glow-rgb), 0.1);
+
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.2s ease;
+    animation: cepha-dock-rise 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.cepha-dock-pill:hover {
+    transform: translateX(-50%) scale(1.08);
+}
+
+.cepha-dock-pill:active {
+    transform: translateX(-50%) scale(0.94);
+    transition-duration: 0.1s;
+}
+
+/* Long-press progress ring */
+.cepha-dock-pill::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: inherit;
+    border: 2.5px solid rgba(var(--cepha-dock-glow-rgb), 0.6);
+    opacity: 0;
+    pointer-events: none;
+}
+.cepha-dock-pressing::after {
+    opacity: 1;
+    animation: cepha-press-ring 0.5s linear forwards;
+}
+@keyframes cepha-press-ring {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0 0 0); }
+}
+
+/* ─── Poker Wheel (expanded) ─────────────────────────────────────── */
+
+.cepha-wheel-active {
+    position: fixed !important;
+    bottom: calc(1rem + var(--cepha-safe-bottom, 0px)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: auto !important;
+
+    width: min(calc(100vw - 1.5rem), 360px) !important;
+    height: 52px !important;
+
+    background: rgba(var(--cepha-dock-bg), 0.82) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+
+    border-radius: 26px !important;
+    border: 1px solid var(--cepha-dock-border) !important;
+
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 0 0.5px rgba(255, 255, 255, 0.06) inset,
+        0 4px 48px rgba(var(--cepha-dock-glow-rgb), 0.12) !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    white-space: nowrap !important;
+
+    z-index: 9999 !important;
+    animation: cepha-wheel-open 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+}
+
+/* Center indicator — subtle glow at center of wheel */
+.cepha-wheel-active::before {
+    content: '';
+    position: absolute;
+    top: 4px; bottom: 4px;
+    left: 50%; width: 100px;
+    transform: translateX(-50%);
+    border-radius: 20px;
+    background: rgba(var(--cepha-dock-glow-rgb), 0.08);
+    border: 1px solid rgba(var(--cepha-dock-glow-rgb), 0.15);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Individual link items — positioned by JS */
+.cepha-wheel-active a {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 6px 12px !important;
+    height: 36px !important;
+    border-radius: 18px !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: none !important;
+    transform-origin: center center !important;
+    will-change: transform, opacity !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+}
+
+/* ─── Snap-Go Highlight (auto-navigate flash) ────────────────────── */
+
+.cepha-snap-go {
+    background: rgba(var(--cepha-dock-glow-rgb), 0.35) !important;
+    box-shadow: 0 0 16px rgba(var(--cepha-dock-glow-rgb), 0.5) !important;
+    transform: scale(1.15) !important;
+    transition: all 0.15s ease-out !important;
+}
+
+/* ─── Quick-Jump List (long press) ───────────────────────────────── */
+
+.cepha-dock-list {
+    position: fixed;
+    bottom: calc(4.5rem + var(--cepha-safe-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px;
+    min-width: 200px;
+    max-width: calc(100vw - 2rem);
+    max-height: 60vh;
+    overflow-y: auto;
+
+    background: rgba(var(--cepha-dock-bg), 0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+
+    border-radius: 20px;
+    border: 1px solid var(--cepha-dock-border);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.35),
+        0 0 0 0.5px rgba(255, 255, 255, 0.06) inset;
+
+    animation: cepha-list-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.cepha-dock-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--cepha-dock-list-text, inherit);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+}
+
+.cepha-dock-list-item:hover {
+    background: var(--cepha-dock-pill-hover);
+}
+
+.cepha-dock-list-item.cepha-current {
+    background: var(--cepha-dock-pill-active);
+    font-weight: 700;
+}
+
+.cepha-dock-list-sep {
+    height: 1px;
+    background: var(--cepha-dock-border);
+    margin: 4px 0;
+}
+
+.cepha-dock-list-theme {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    opacity: 0.7;
+}
+
+.cepha-dock-list-label {
+    padding: 6px 16px 2px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.45;
+    color: var(--cepha-dock-list-text, inherit);
+}
+
+.cepha-dock-list-extra {
+    font-size: 0.82rem;
+    opacity: 0.85;
+}
+
+/* ─── Animations ─────────────────────────────────────────────────── */
+
+@keyframes cepha-dock-rise {
+    0%   { transform: translateX(-50%) translateY(120%); opacity: 0; }
+    60%  { opacity: 1; }
+    100% { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+@keyframes cepha-wheel-open {
+    from { transform: translateX(-50%) scaleX(0.3) scaleY(0.7); opacity: 0; }
+    to   { transform: translateX(-50%) scaleX(1) scaleY(1);     opacity: 1; }
+}
+
+@keyframes cepha-list-up {
+    from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+/* ─── Main Content — Fills Available Space ───────────────────────── */
+
+.cepha-main,
+.cepha-ui .cepha-main {
+    padding-left: max(var(--cepha-gutter), var(--cepha-safe-left));
+    padding-right: max(var(--cepha-gutter), var(--cepha-safe-right));
+    width: 100%;
+    max-width: calc(var(--cepha-content-max) + 2 * var(--cepha-gutter));
+}
+
+/* ─── Footer — Respects Bottom Safe Area ─────────────────────────── */
+
+.cepha-footer {
+    flex-shrink: 0;
+    padding-bottom: max(1.5rem, calc(1.5rem + var(--cepha-safe-bottom)));
+    padding-left: max(1.5rem, var(--cepha-safe-left));
+    padding-right: max(1.5rem, var(--cepha-safe-right));
+}
+
+/* ─── Loading Screen Fix ─────────────────────────────────────────── */
+
+#app > div[style*="100vh"] {
+    height: 100dvh !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BREAKPOINTS
+   ─────────────────────────────────────────────────────────────────────
+   Phone portrait:    < 480px
+   Phone landscape:   480–767px
+   Tablet portrait:   768–1023px
+   Tablet landscape:  1024–1279px
+   Desktop:           ≥ 1280px
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Small Phone (≤ 359px) — compact devices ────────────────────── */
+
+@media (max-width: 359px) {
+    :root { --cepha-gutter: 0.5rem; }
+
+    .cepha-nav-brand a { font-size: 0.95rem; }
+
+    .cepha-hero { padding: 1.5rem 0; }
+    .cepha-hero h1 { font-size: 1.5rem; }
+    .cepha-hero .lead { font-size: 0.85rem; }
+
+    .cepha-card { margin-left: 0; margin-right: 0; }
+    .cepha-card-body { padding: 12px; }
+
+    .cepha-btn, .md3-btn, .hig-btn { font-size: 13px; }
+}
+
+/* ─── Phone Portrait (≤ 479px) ───────────────────────────────────── */
+
+@media (max-width: 479px) {
+    .cepha-main { padding-top: 1rem; padding-bottom: 1rem; }
+
+    .cepha-hero { padding: 2rem 0; }
+    .cepha-hero h1 { font-size: 1.75rem; }
+
+    /* Stack feature cards vertically */
+    .cepha-features { grid-template-columns: 1fr !important; gap: 0.75rem; }
+
+    /* Button group wraps */
+    .cepha-btn-group { flex-wrap: wrap; }
+
+    /* Tables scroll horizontally */
+    .cepha-table-responsive,
+    table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.4rem; }
+    h3 { font-size: 1.2rem; }
+}
+
+/* ─── Phone Landscape (480–767px) ────────────────────────────────── */
+
+@media (min-width: 480px) and (max-width: 767px) {
+    .cepha-features { grid-template-columns: repeat(2, 1fr); }
+    .cepha-hero h1 { font-size: 2rem; }
+    .cepha-main { padding: 1.25rem var(--cepha-gutter); }
+}
+
+/* ─── Landscape with short height (any width) ────────────────────── */
+
+@media (max-height: 500px) and (orientation: landscape) {
+    .cepha-hero { padding: 1rem 0; }
+    .cepha-hero h1 { font-size: 1.5rem; }
+
+    .cepha-main { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .cepha-footer { padding-top: 0.75rem; padding-bottom: max(0.75rem, calc(0.75rem + var(--cepha-safe-bottom))); }
+}
+
+/* ─── Tablet Portrait (768–1023px) ───────────────────────────────── */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    :root { --cepha-content-max: 720px; }
+    .cepha-features { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── Tablet Landscape + Small Desktop (1024–1279px) ─────────────── */
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+    :root { --cepha-content-max: 900px; }
+    .cepha-features { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ─── Desktop (≥ 1280px) ─────────────────────────────────────────── */
+
+@media (min-width: 1280px) {
+    :root { --cepha-content-max: 1100px; }
+    .cepha-features { grid-template-columns: repeat(3, 1fr); }
+
+    /* Wider main on large screens */
+    .cepha-main { max-width: calc(var(--cepha-content-max) + 2 * var(--cepha-gutter)); }
+}
+
+/* ─── Ultra-wide (≥ 1920px) ──────────────────────────────────────── */
+
+@media (min-width: 1920px) {
+    :root { --cepha-content-max: 1200px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   OVERFLOW & CONTENT CONTAINMENT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Prevent any child from causing horizontal scroll */
+.cepha-main > *,
+.cepha-hero > *,
+.cepha-card > * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* Code blocks scroll instead of overflow */
+pre, code {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Images never exceed container */
+img, video, iframe, embed, object {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Reduced motion — disable animations for vestibular disorders */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    /* Keep ripple functional but instant */
+    .md3-ripple-wave { transition: none !important; animation: none !important; }
+}
+
+/* High contrast — enhance borders and focus indicators */
+@media (prefers-contrast: more) {
+    :root {
+        --cepha-border: #888;
+    }
+    .cepha-btn, .md3-btn, .hig-btn {
+        border: 2px solid currentColor !important;
+    }
+    .cepha-card {
+        border-width: 2px !important;
+    }
+    a { text-decoration: underline !important; }
+}
+
+/* Keyboard focus — visible focus ring (only for keyboard users) */
+:focus-visible {
+    outline: 3px solid var(--cepha-primary, #6750A4);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Remove outline for mouse/touch (non-keyboard) */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Touch target minimum sizes (WCAG 2.5.8 — Target Size Enhanced) */
+@media (pointer: coarse) {
+    .cepha-btn, .md3-btn, .hig-btn,
+    button, [role="button"],
+    input[type="submit"], input[type="button"],
+    a.cepha-btn, a.btn {
+        min-height: 48px;
+        min-width: 48px;
+    }
+    .cepha-nav-links a,
+    .cepha-ui .cepha-nav-links a {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PRINT
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media print {
+    .cepha-nav, .cepha-footer, .cepha-theme-toggle,
+    #cepha-theme-toggle, .cepha-fab { display: none !important; }
+
+    .cepha-main {
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    body {
+        min-height: auto;
+        display: block;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CMUI-X Responsive Fixes — Prevent Component Overlap
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    /* Hero section — reduce padding, fix text overflow */
+    .cx-hero {
+        min-height: 50vh !important;
+        padding: calc(56px + 1rem) 1rem 1.5rem !important;
+    }
+    .cx-hero__title {
+        font-size: clamp(1.6rem, 5vw, 2.5rem) !important;
+    }
+    .cx-hero__sub {
+        font-size: 0.85rem !important;
+        padding: 0 0.5rem !important;
+    }
+    .cx-hero__actions {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        padding: 0 1rem !important;
+    }
+    .cx-hero__actions .cx-btn {
+        width: 100% !important;
+    }
+
+    /* Sections — tighter spacing */
+    .cx-section {
+        padding: 2rem 0.75rem !important;
+    }
+    .cx-section__header {
+        margin-bottom: 1.5rem !important;
+    }
+
+    /* Cards — full width, no overlap */
+    .cx-holo-card, .cx-glass-card, .cx-neural-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 1rem 0 !important;
+    }
+
+    /* Grid — single column on mobile */
+    .cx-grid--2, .cx-grid--3, .cx-grid--4 {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    /* Container padding */
+    .cx-container {
+        padding: 0 0.75rem !important;
+    }
+
+    /* Stats counters — stack vertically */
+    .cx-stat-row, .cx-flex--between {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Timeline — single column */
+    .cx-timeline {
+        padding-left: 1.5rem !important;
+    }
+
+    /* Buttons — full width for usability */
+    .cx-btn--lg {
+        padding: 12px 20px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Theme toggle — absorb into dock on mobile */
+    html.cepha-dock-ready .cx-theme-toggle {
+        display: none !important;
+    }
+
+    /* Splash — fit mobile */
+    .cx-splash__version {
+        font-size: 0.65rem !important;
+    }
+
+    /* Brand header */
+    .cx-brand-header {
+        flex-direction: column !important;
+        text-align: center !important;
+        padding: 0 0.75rem !important;
+    }
+
+    /* Dock pill space */
+    body.cx-body {
+        padding-bottom: calc(3.5rem + var(--cepha-safe-bottom, 0px));
+    }
+}
