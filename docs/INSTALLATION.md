@@ -4,7 +4,7 @@
 
 1. Open the latest release:
    <https://github.com/sbay-dev/MagicMirror/releases/latest>
-2. Download `MagicMirror-v1.0.1-windows-x64.zip`.
+2. Download `MagicMirror-v1.0.2-windows-x64.zip`.
 3. Extract the ZIP to a writable folder.
 4. Run `MagicMirror.Native.exe`.
 

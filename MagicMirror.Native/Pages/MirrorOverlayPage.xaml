@@ -114,7 +114,7 @@
         </Border>
 
         <Border x:Name="DictionaryPanel" IsVisible="False" VerticalOptions="End" HorizontalOptions="End"
-                WidthRequest="430" StrokeThickness="1" Padding="10" Margin="8">
+                WidthRequest="460" StrokeThickness="1" Padding="10" Margin="8">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="14" />
             </Border.StrokeShape>
@@ -163,9 +163,16 @@
                             FontSize="12" Padding="7,0" HeightRequest="30" CornerRadius="8"
                             BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
                 </Grid>
-                <ScrollView x:Name="DictionaryScroll" HeightRequest="210">
-                    <Label x:Name="LblDictionaryResult" Text="انقر معجم للحصول على بدائل وسياقات المصطلح."
-                           FontSize="12" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.18" />
+                <ScrollView x:Name="DictionaryScroll" HeightRequest="245">
+                    <VerticalStackLayout x:Name="DictionaryResultStack" Spacing="8" FlowDirection="RightToLeft">
+                        <Border StrokeThickness="1" Padding="8,6" BackgroundColor="#14243A" Stroke="#3357E3FF">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Label Text="انقر معجم للحصول على بدائل وسياقات المصطلح."
+                                   FontSize="11" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.25" />
+                        </Border>
+                    </VerticalStackLayout>
                 </ScrollView>
             </VerticalStackLayout>
         </Border>

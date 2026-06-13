@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.0.2 - 2026-06-13
+
+### Fixed
+- Dictionary results now render as structured cards with section headings instead
+  of a single raw label, preventing Arabic/English bidi overlap and unreadable
+  line wrapping.
+- Gateway failures now appear as a clear dictionary status card instead of a
+  malformed analysis block, so the app remains usable when gpt-oss-120b is
+  temporarily unavailable.
+
 ## v1.0.1 - 2026-06-13
 
 ### Fixed

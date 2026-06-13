@@ -1,6 +1,7 @@
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.ApplicationModel.DataTransfer;
+using System.Text.RegularExpressions;
 using IImage = Microsoft.Maui.Graphics.IImage;
 using MagicMirror.Native.Mirror;
 
@@ -49,6 +50,15 @@ public partial class MirrorOverlayPage : ContentPage
     };
 
     private static readonly double[] BackgroundOpacitySteps = { 0.0, 0.25, 0.45, 0.60, 0.72, 0.85, 1.0 };
+    private static readonly Regex DictionaryLtrRunRegex = new(@"[A-Za-z0-9][A-Za-z0-9._:/@#%+\-=]*", RegexOptions.Compiled);
+    private static readonly string[] DictionaryHeadings =
+    {
+        "المدخل", "النص المحدد", "مجال النص", "المجال", "التصنيف", "المعنى",
+        "البدائل", "الاحتمالات", "الفروق", "السياق", "سبب الترجيح", "الترجيح",
+        "الخلاصة", "خلاصة فاصلة", "التوصية", "ملاحظة",
+        "Entry", "Domain", "Classification", "Meaning", "Alternatives", "Context",
+        "Rationale", "Recommendation", "Summary"
+    };
 
 #if WINDOWS
     private Microsoft.UI.Xaml.UIElement? _wheelElement;
@@ -461,7 +471,7 @@ public partial class MirrorOverlayPage : ContentPage
 
         SelectDictionaryHit(hit);
         DictionaryPanel.IsVisible = true;
-        LblDictionaryResult.Text = "انقر «معجم» للحصول على خمسة بدائل وسياق ترجيحي.";
+        ShowDictionaryStatus("انقر «معجم» للحصول على خمسة بدائل وسياق ترجيحي مرتب حسب قواعد المداخل المعجمية.");
         SetStatus($"معجم: {Trunc(_selectedDictionaryText, 38)}");
         Canvas.Invalidate();
         e.Handled = true;
@@ -525,20 +535,18 @@ public partial class MirrorOverlayPage : ContentPage
 
         _busy = true;
         BtnDictionaryExplain.IsEnabled = false;
-        LblDictionaryResult.Text = "⏳ يجري بناء التحليل المعجمي عبر النموذج...";
+        ShowDictionaryStatus("يجري بناء التحليل المعجمي عبر النموذج...");
         try
         {
             var context = BuildDictionaryContext();
             var result = await _engine.Translator.ExplainDictionaryAsync(
                 _selectedDictionaryText, context, _settings.Current.TargetLanguage, _settings.Current);
-            LblDictionaryResult.Text = string.IsNullOrWhiteSpace(result)
-                ? "لم يرجع النموذج نتيجة معجمية."
-                : FormatDictionaryResult(result);
+            ShowDictionaryResult(result);
         }
         catch (Exception ex)
         {
             MirrorLog.Error("Dictionary explain", ex);
-            LblDictionaryResult.Text = "تعذر تنفيذ التحليل المعجمي. راجع سجل المرآة لمعرفة سبب بوابة gpt-oss-120b.";
+            ShowDictionaryStatus("تعذر تنفيذ التحليل المعجمي. راجع سجل المرآة لمعرفة سبب بوابة gpt-oss-120b.");
         }
         finally
         {
@@ -626,31 +634,200 @@ public partial class MirrorOverlayPage : ContentPage
         return line.Length <= 120 ? line : line.Substring(0, 119).TrimEnd() + "…";
     }
 
-    private static string FormatDictionaryResult(string result)
+    private void ShowDictionaryStatus(string message)
+    {
+        DictionaryResultStack.Children.Clear();
+        AddDictionarySection("حالة المعجم", new[] { message }, "#14243A", "#3357E3FF");
+    }
+
+    private void ShowDictionaryResult(string result)
+    {
+        DictionaryResultStack.Children.Clear();
+        var text = NormalizeDictionaryResult(result);
+        if (text.Length == 0)
+        {
+            ShowDictionaryStatus("لم يرجع النموذج نتيجة معجمية.");
+            return;
+        }
+
+        var sections = SplitDictionarySections(text).ToList();
+        if (sections.Count == 0)
+            sections.Add(("نتيجة المعجم", text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()));
+
+        foreach (var (title, lines) in sections)
+        {
+            var warning = title.Contains("حالة", StringComparison.OrdinalIgnoreCase) ||
+                          lines.Any(line => line.Contains("HTTP ", StringComparison.OrdinalIgnoreCase) ||
+                                            line.Contains("غير متاحة", StringComparison.OrdinalIgnoreCase));
+            AddDictionarySection(
+                title,
+                lines,
+                warning ? "#2A1E22" : "#14243A",
+                warning ? "#66FFB347" : "#3357E3FF");
+        }
+    }
+
+    private static string NormalizeDictionaryResult(string result)
     {
         var text = (result ?? "").Replace("\r\n", "\n").Replace('\r', '\n').Trim();
         if (text.Length == 0)
             return "";
 
+        foreach (var heading in DictionaryHeadings)
+        {
+            text = Regex.Replace(
+                text,
+                $@"(?<!^)(?<!\n)\s*({Regex.Escape(heading)})\s*[:：]",
+                "\n$1:",
+                RegexOptions.IgnoreCase);
+        }
         for (var i = 1; i <= 9; i++)
         {
-            text = text.Replace($" {i}. ", $"\n\n{i}. ");
-            text = text.Replace($"\n{i}. ", $"\n\n{i}. ");
+            text = text.Replace($" {i}. ", $"\n{i}. ");
+            text = text.Replace($" {i}) ", $"\n{i}) ");
         }
-
-        var headings = new[]
-        {
-            "التصنيف", "البدائل", "الاحتمالات", "السياق", "الترجيح", "الخلاصة",
-            "Classification", "Alternatives", "Context", "Summary"
-        };
-        foreach (var heading in headings)
-            text = text.Replace($"{heading}:", $"\n\n{heading}:");
 
         var lines = text
             .Split('\n')
             .Select(line => line.Trim())
             .Where(line => line.Length > 0);
-        return string.Join(Environment.NewLine + Environment.NewLine, lines);
+
+        return string.Join("\n", lines);
+    }
+
+    private static IEnumerable<(string Title, List<string> Lines)> SplitDictionarySections(string text)
+    {
+        string? title = null;
+        var lines = new List<string>();
+
+        foreach (var line in text.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (TrySplitDictionaryHeading(line, out var nextTitle, out var inline))
+            {
+                if (title != null && lines.Count > 0)
+                    yield return (title, lines);
+
+                title = nextTitle;
+                lines = new List<string>();
+                if (!string.IsNullOrWhiteSpace(inline))
+                    lines.Add(inline);
+                continue;
+            }
+
+            if (title == null)
+                title = LooksLikeAlternativeLine(line) ? "البدائل" : "نتيجة المعجم";
+            lines.Add(line);
+        }
+
+        if (title != null && lines.Count > 0)
+            yield return (title, lines);
+    }
+
+    private static bool TrySplitDictionaryHeading(string line, out string title, out string inline)
+    {
+        title = "";
+        inline = "";
+        var colon = line.IndexOf(':');
+        if (colon < 0)
+            colon = line.IndexOf('：');
+        if (colon <= 0)
+            return false;
+
+        var candidate = line[..colon].Trim();
+        if (!DictionaryHeadings.Any(h => string.Equals(candidate, h, StringComparison.OrdinalIgnoreCase)))
+            return false;
+
+        title = candidate;
+        inline = line[(colon + 1)..].Trim();
+        return true;
+    }
+
+    private void AddDictionarySection(string title, IEnumerable<string> rawLines, string background, string stroke)
+    {
+        var card = new Border
+        {
+            StrokeThickness = 1,
+            Padding = new Thickness(9, 7),
+            BackgroundColor = Color.FromArgb(background),
+            Stroke = Color.FromArgb(stroke)
+        };
+        var stack = new VerticalStackLayout
+        {
+            Spacing = 5,
+            FlowDirection = FlowDirection.RightToLeft
+        };
+        stack.Children.Add(new Label
+        {
+            Text = PrepareDictionaryDisplayText(title),
+            FontSize = 12,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Color.FromArgb("#9DEBFF"),
+            HorizontalTextAlignment = TextAlignment.End,
+            LineBreakMode = LineBreakMode.WordWrap,
+            LineHeight = 1.22
+        });
+
+        foreach (var raw in rawLines.SelectMany(SplitLongDictionaryLine))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0)
+                continue;
+
+            var technical = IsMostlyTechnicalDictionaryLine(line);
+            stack.Children.Add(new Label
+            {
+                Text = technical ? line : PrepareDictionaryDisplayText(line),
+                FontSize = LooksLikeAlternativeLine(line) ? 11 : 10.5,
+                TextColor = Color.FromArgb(technical ? "#E8F6FF" : "#CFEFFF"),
+                FlowDirection = technical ? FlowDirection.LeftToRight : FlowDirection.RightToLeft,
+                HorizontalTextAlignment = technical ? TextAlignment.Start : TextAlignment.End,
+                LineBreakMode = LineBreakMode.WordWrap,
+                LineHeight = 1.28,
+                Margin = LooksLikeAlternativeLine(line) ? new Thickness(0, 2, 0, 0) : Thickness.Zero
+            });
+        }
+
+        card.Content = stack;
+        DictionaryResultStack.Children.Add(card);
+    }
+
+    private static IEnumerable<string> SplitLongDictionaryLine(string line)
+    {
+        var normalized = (line ?? "").Trim();
+        if (normalized.Length == 0)
+            yield break;
+
+        foreach (var part in Regex.Split(normalized, @"(?=\b[1-9][\.\)]\s+)"))
+        {
+            var item = part.Trim();
+            if (item.Length > 0)
+                yield return item;
+        }
+    }
+
+    private static string PrepareDictionaryDisplayText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return text;
+
+        var isolated = DictionaryLtrRunRegex.Replace(text, m => "\u202A" + m.Value + "\u202C");
+        return "\u202B" + isolated + "\u202C";
+    }
+
+    private static bool LooksLikeAlternativeLine(string line)
+        => Regex.IsMatch(line ?? "", @"^\s*(?:[-•]\s*)?[1-9][\.\)]\s+");
+
+    private static bool IsMostlyTechnicalDictionaryLine(string line)
+    {
+        var text = line ?? "";
+        if (text.Length == 0)
+            return false;
+
+        var ascii = text.Count(c => c <= 127 && !char.IsWhiteSpace(c));
+        var letters = text.Count(char.IsLetterOrDigit);
+        return text.Contains("HTTP ", StringComparison.OrdinalIgnoreCase) ||
+               text.Contains("://", StringComparison.Ordinal) ||
+               (letters > 0 && ascii >= Math.Max(4, letters * 2 / 3));
     }
 
     private void OnSmaller(object? sender, EventArgs e) => AdjustScale(-0.25);
