@@ -285,6 +285,15 @@ root cause must be investigated.
 
 ---
 
+## SPEC-AUTH-023 — Dedicated Cloudflare gateway for Magic Mirror (verbatim, Arabic)
+
+> ارى اننا بحاجه الى انشاء بوابة مخصصة لهذا التطبيق ونشرها على كلاودفلير وربط التطبيق بها حتى نضمن النتائج
+
+**English:** We need to create a dedicated gateway for this application, deploy it to Cloudflare,
+and connect the app to it so results are guaranteed.
+
+---
+
 ## Standing author conventions (from memory)
 - Document data-extraction/processing functions thoroughly (parameters + protocol) so they can be
   reused to reproduce the same output quality.

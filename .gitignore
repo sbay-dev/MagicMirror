@@ -40,7 +40,12 @@ Desktop.ini
 # Local secrets
 .env
 .env.*
+.dev.vars
 secrets.*
 appsettings.*.json
 !appsettings.json
 !appsettings.Development.json
+
+# Wrangler local state
+.wrangler/
+cloudflare/**/.wrangler/

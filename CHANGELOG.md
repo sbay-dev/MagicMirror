@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Dedicated Cloudflare Worker gateway under
+  `cloudflare/magicmirror-sarmad-gateway`, with Wrangler config, deployment
+  script, and manual GitHub Actions workflow template.
+
 ## v1.0.3 - 2026-06-13
 
 ### Fixed

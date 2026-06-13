@@ -43,9 +43,11 @@ fabricating results.
 
 The old documentation gateway at `https://wmr-doc.pages.dev/api/sarmad/ask` is
 not used as a default product fallback because it was deployed against the
-deprecated `@cf/openai/gpt-oss-120b` model. Deploy this repository's web layer
-with a supported model such as `@cf/openai/gpt-oss-20b`, then set
-`GatewayBaseUrl` to that deployment.
+deprecated `@cf/openai/gpt-oss-120b` model.
+
+For reliable dictionary and AI translation results, deploy the dedicated Worker
+in `cloudflare\magicmirror-sarmad-gateway` and set `GatewayBaseUrl` to its
+Worker URL. See [CLOUDFLARE_GATEWAY.md](CLOUDFLARE_GATEWAY.md).
 
 ## OCR
 

@@ -411,6 +411,25 @@ Solution layout:
   a clear "بوابة المعجم غير مضبوطة" status for dictionary analysis; it must not call the stale
   documentation gateway or fabricate dictionary alternatives.
 
+## D32 — Dedicated Magic Mirror Cloudflare gateway  ⇐ SPEC-AUTH-023
+- The repository contains a standalone Worker gateway under
+  `cloudflare/magicmirror-sarmad-gateway/`.
+- `cloudflare/magicmirror-sarmad-gateway/wrangler.toml` configures a dedicated Worker service named
+  `magicmirror-sarmad-gateway` and binds Cloudflare Workers AI as `AI`.
+- `cloudflare/magicmirror-sarmad-gateway/src/worker.js` implements:
+  - `GET /` and `GET /api/sarmad/health` health responses;
+  - `POST /api/sarmad/ask` with the app's `{mode, surface, prompt, context, language, model}`
+    contract;
+  - automatic migration from deprecated `@cf/openai/gpt-oss-120b` requests to
+    `@cf/openai/gpt-oss-20b`;
+  - translation and dictionary-specific system prompts, preserving document-grade Arabic output.
+- `scripts/deploy-gateway.ps1` deploys the Worker with Wrangler without storing Cloudflare secrets in
+  the repository.
+- `.github/workflows/deploy-gateway.yml` provides a manual deployment workflow that reads
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` from GitHub Secrets only.
+- After Cloudflare deployment succeeds, `MirrorSettings.GatewayBaseUrl` should be set to the Worker
+  origin URL so the native app calls `{GatewayBaseUrl}/api/sarmad/ask`.
+
 ---
 
 ### Verification

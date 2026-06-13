@@ -7,6 +7,7 @@ while preserving document structure, typography, and reading direction.
 
 [Download latest release](https://github.com/sbay-dev/MagicMirror/releases/latest)
 · [Installation](docs/INSTALLATION.md)
+· [Cloudflare gateway](docs/CLOUDFLARE_GATEWAY.md)
 · [User guide](docs/USER_GUIDE.md)
 · [Architecture](docs/ARCHITECTURE.md)
 · [Specifications](docs/specifications/AUTHOR-LINGUISTIC-SPECIFICATIONS.md)
