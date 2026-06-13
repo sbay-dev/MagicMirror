@@ -15,7 +15,7 @@ namespace MagicMirror.Native.Mirror;
 /// </summary>
 public sealed class MirrorDrawable : IDrawable
 {
-    public sealed record TextHitRegion(TranslatedBlock Block, string Text, RectF Bounds, bool IsWord);
+    public sealed record TextHitRegion(TranslatedBlock Block, string Text, RectF Bounds, bool IsWord, bool IsSource = false);
 
     public IImage? Background { get; set; }
     public int CaptureWidth { get; set; }
@@ -65,6 +65,9 @@ public sealed class MirrorDrawable : IDrawable
 
     /// <summary>Selected word/term inside <see cref="SelectedBlock"/> for dictionary inspection.</summary>
     public string? SelectedText { get; set; }
+
+    /// <summary>Canvas-space rectangle of the exact rendered/source hit that the user selected.</summary>
+    public RectF? SelectedTextBounds { get; set; }
 
     /// <summary>Actual rendered word/line rectangles in canvas coordinates, rebuilt every frame for hit testing.</summary>
     public IReadOnlyList<TextHitRegion> HitRegions => _hitRegions;
@@ -299,7 +302,10 @@ public sealed class MirrorDrawable : IDrawable
         var textCore = new RectF(drawX, drawY, drawW, drawH);
         _hitRegions.Add(new TextHitRegion(block, block.TranslatedText, textCore, IsWord: false));
         if (ReferenceEquals(block, SelectedBlock))
+        {
             DrawSelectionHighlight(canvas, sourceCore, textCore);
+            DrawSelectedHitHighlight(canvas, block);
+        }
 
         foreach (var line in textLines)
         {
@@ -319,7 +325,7 @@ public sealed class MirrorDrawable : IDrawable
         if (string.IsNullOrWhiteSpace(text))
             return;
 
-        _hitRegions.Add(new TextHitRegion(block, text.Trim(), sourceCore, IsWord: false));
+        _hitRegions.Add(new TextHitRegion(block, text.Trim(), sourceCore, IsWord: false, IsSource: true));
     }
 
     private List<TextHitRegion> RegisterLineHitRegions(TranslatedBlock block, string line, float x, float y, float width, float height, float fontSize, bool rightToLeft)
@@ -392,6 +398,21 @@ public sealed class MirrorDrawable : IDrawable
             canvas.StrokeColor = Color.FromRgba(255, 214, 10, 230);
             canvas.DrawRoundedRectangle(hit.Bounds, 4);
         }
+    }
+
+    private void DrawSelectedHitHighlight(ICanvas canvas, TranslatedBlock block)
+    {
+        if (!ReferenceEquals(block, SelectedBlock) ||
+            SelectedTextBounds is not RectF direct ||
+            direct.Width <= 0 ||
+            direct.Height <= 0)
+            return;
+
+        canvas.FillColor = Color.FromRgba(255, 214, 10, 76);
+        canvas.FillRoundedRectangle(direct, 4);
+        canvas.StrokeSize = 1.2f;
+        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 235);
+        canvas.DrawRoundedRectangle(direct, 4);
     }
 
     private static string CleanHitText(string token)
@@ -576,10 +597,11 @@ public sealed class MirrorDrawable : IDrawable
 
     private void DrawSelectionHighlight(ICanvas canvas, RectF sourceCore, RectF textCore)
     {
-        canvas.FillColor = Color.FromRgba(255, 214, 10, 54);
-        canvas.FillRoundedRectangle(sourceCore, 3);
-        canvas.StrokeSize = 1.5f;
+        canvas.StrokeSize = 2.0f;
         canvas.StrokeColor = Color.FromRgba(255, 214, 10, 210);
+        canvas.DrawRoundedRectangle(sourceCore, 3);
+        canvas.StrokeSize = 1.5f;
+        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 185);
         canvas.DrawRoundedRectangle(textCore, 4);
     }
 

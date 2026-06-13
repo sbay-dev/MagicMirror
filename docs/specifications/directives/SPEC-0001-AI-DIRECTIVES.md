@@ -376,6 +376,22 @@ Solution layout:
   selection visible immediately.
 - The dictionary panel instruction now tells the user to click any word in the mirror to select it.
 
+## D30 — Reliable dictionary movement, source-position selection feedback, and compact gateway payloads  ⇐ SPEC-AUTH-021
+- `MirrorOverlayPage.xaml` gives the dictionary card explicit on-card movement buttons (`↖`, `↗`,
+  `↙`, `↘`, reset) in addition to a larger drag handle, so the card remains movable even when pan
+  gestures are unreliable on the current platform surface.
+- `MirrorDrawable.SelectedTextBounds` stores the exact rendered/source hit selected by the user.
+  `DrawSelectionHighlight(...)` now outlines the corresponding source/document block instead of
+  filling it with a large opaque yellow mask, while `DrawSelectedHitHighlight(...)` marks the selected
+  Arabic term/line itself.
+- `MirrorOverlayPage.OnDictionaryExplain(...)` sends only the selected term as `selectedText`; the
+  original and translated block excerpts are kept in compact nearby context instead of being duplicated
+  into the selected-text field.
+- `SarmadTranslationService.ExplainDictionaryAsync(...)` retries dictionary requests with progressively
+  smaller context, down to a selected-term-only prompt. If the gateway still returns an error (for
+  example `HTTP 502 BadGateway`), the panel displays that reason first and does not fabricate lexical
+  alternatives without gpt-oss-120b.
+
 ---
 
 ### Verification

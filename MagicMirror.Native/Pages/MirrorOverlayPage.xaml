@@ -114,7 +114,7 @@
         </Border>
 
         <Border x:Name="DictionaryPanel" IsVisible="False" VerticalOptions="End" HorizontalOptions="End"
-                WidthRequest="390" StrokeThickness="1" Padding="10" Margin="8">
+                WidthRequest="430" StrokeThickness="1" Padding="10" Margin="8">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="14" />
             </Border.StrokeShape>
@@ -125,12 +125,34 @@
                 <SolidColorBrush Color="#EE0A1326" />
             </Border.Background>
             <VerticalStackLayout Spacing="8">
-                <Label Text="انقر على أي كلمة في المرآة للاختيار، واسحب هذه البطاقة عند الحاجة" FontSize="10"
-                       TextColor="#7EDBFF" Opacity="0.75">
-                    <Label.GestureRecognizers>
-                        <PanGestureRecognizer PanUpdated="OnDictionaryPanelPan" />
-                    </Label.GestureRecognizers>
-                </Label>
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+                    <Border Grid.Column="0" StrokeThickness="1" Padding="8,4" BackgroundColor="#2212385A"
+                            Stroke="#334DD0E1">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8" />
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <PanGestureRecognizer PanUpdated="OnDictionaryPanelPan" />
+                        </Border.GestureRecognizers>
+                        <Label Text="☰ انقر كلمة للاختيار · اسحب هنا أو استخدم الأسهم" FontSize="10"
+                               TextColor="#7EDBFF" Opacity="0.88" />
+                    </Border>
+                    <Button Grid.Column="1" Text="↖" Clicked="OnDictionaryNudge" CommandParameter="-120,-90"
+                            FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="2" Text="↗" Clicked="OnDictionaryNudge" CommandParameter="120,-90"
+                            FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="3" Text="↙" Clicked="OnDictionaryNudge" CommandParameter="-120,90"
+                            FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="4" Text="↘" Clicked="OnDictionaryNudge" CommandParameter="120,90"
+                            FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="5" Text="↺" Clicked="OnDictionaryResetPosition"
+                            FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
+                            BackgroundColor="#1A2A44" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                </Grid>
                 <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                     <Label Grid.Column="0" x:Name="LblDictionarySelection" Text="النص المحدد"
                            FontSize="12" TextColor="#D7F6FF" FontAttributes="Bold" LineBreakMode="TailTruncation" />
@@ -141,7 +163,7 @@
                             FontSize="12" Padding="7,0" HeightRequest="30" CornerRadius="8"
                             BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
                 </Grid>
-                <ScrollView HeightRequest="210">
+                <ScrollView x:Name="DictionaryScroll" HeightRequest="210">
                     <Label x:Name="LblDictionaryResult" Text="انقر معجم للحصول على بدائل وسياقات المصطلح."
                            FontSize="12" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.18" />
                 </ScrollView>

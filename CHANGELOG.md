@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.1 - 2026-06-13
+
+### Fixed
+- Dictionary panel can now be repositioned reliably with on-card arrow controls
+  and a larger drag handle.
+- Arabic click selection now records the exact selected rendered/source hit
+  rectangle while outlining the corresponding source block without covering the
+  document with a large opaque mask.
+- Dictionary requests now send only the selected term plus compact nearby
+  context, retry progressively smaller payloads, and surface gateway failures
+  from the top of the panel.
+
 ## v1.0.0 - 2026-06-13
 
 Initial public release of Magic Mirror.

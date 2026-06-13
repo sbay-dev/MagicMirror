@@ -68,30 +68,37 @@ public sealed class SarmadTranslationService : ITranslationService
         if (string.IsNullOrWhiteSpace(selectedText))
             throw new ArgumentException("No selected text for dictionary explanation.", nameof(selectedText));
 
-        var selected = TrimForPrompt(selectedText.Trim(), 900);
+        var selected = TrimForPrompt(selectedText.Trim(), 240);
         var targetName = LanguageName(targetLanguage);
-        try
+
+        Exception? last = null;
+        foreach (var attempt in new[]
         {
-            var prompt = BuildDictionaryPrompt(selected, CompactDictionaryContext(documentContext, 1800), targetName, compact: false);
-            return await AskAsync(prompt, targetLanguage, settings, ct);
-        }
-        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            (ContextChars: 900, Compact: false),
+            (ContextChars: 360, Compact: true),
+            (ContextChars: 0, Compact: true),
+        })
         {
-            MirrorLog.Info("Dictionary prompt too large (413); retrying with compact context.");
             try
             {
-                var prompt = BuildDictionaryPrompt(selected, CompactDictionaryContext(documentContext, 650), targetName, compact: true);
-                return await AskAsync(prompt, targetLanguage, settings, ct);
+                var context = attempt.ContextChars <= 0
+                    ? ""
+                    : CompactDictionaryContext(documentContext, attempt.ContextChars);
+                var prompt = BuildDictionaryPrompt(selected, context, targetName, attempt.Compact);
+                return await AskAsync(prompt, targetLanguage, settings, ct,
+                    contextOverride: "Magic Mirror dictionary lookup. Keep payload small; use selected term plus nearby context only.");
             }
-            catch (Exception retryEx)
+            catch (Exception ex)
             {
-                return BuildDictionaryUnavailableMessage(selected, retryEx);
+                last = ex;
+                if (ex is HttpRequestException http && http.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+                    MirrorLog.Info("Dictionary prompt too large (413); retrying with smaller context.");
+                else
+                    MirrorLog.Info($"Dictionary gateway attempt failed ({ex.GetType().Name}); retrying compact request.");
             }
         }
-        catch (Exception ex)
-        {
-            return BuildDictionaryUnavailableMessage(selected, ex);
-        }
+
+        return BuildDictionaryUnavailableMessage(selected, last ?? new InvalidOperationException("Dictionary gateway rejected all attempts."));
     }
 
     private static string BuildDictionaryPrompt(string selectedText, string documentContext, string targetName, bool compact)
@@ -99,19 +106,18 @@ public sealed class SarmadTranslationService : ITranslationService
         var context = (documentContext ?? "").Trim();
 
         var sb = new StringBuilder();
-        sb.Append("Target language: ").AppendLine(targetName)
-          .AppendLine("You are Magic Mirror's lexical examiner. Use the document context to analyze the selected word/phrase.")
-          .AppendLine("Return ONLY in the target language with this structure:")
-          .AppendLine("1. المجال والسياق: classify the full text domain and explain why it affects meaning.")
-          .AppendLine("2. البدائل المعجمية: provide at least five numbered alternatives; for each give confidence, when it fits, and when it does not fit.")
-          .AppendLine("3. الترجيح النهائي: one decisive recommendation that reduces doubt and states the contextual basis.")
-          .AppendLine("Preserve acronyms/technical identifiers: LCNS, CNS, CubiCrypt, GPT, QKV. Do not invent unsupported meanings.")
-          .AppendLine()
-          .Append("Selected text: ").AppendLine(selectedText)
-          .AppendLine("Full document context:")
-          .AppendLine(context.Length == 0 ? "(not available)" : context);
+        sb.Append("Target: ").AppendLine(targetName)
+          .AppendLine("Analyze the selected term lexically. Reply only in the target language.")
+          .AppendLine("Required: domain/context; at least five alternatives with fit/non-fit notes; final decisive recommendation.")
+          .AppendLine("Preserve technical identifiers (LCNS, CNS, CubiCrypt, GPT, QKV); do not invent unsupported meanings.")
+          .Append("Selected: ").AppendLine(selectedText);
+        if (context.Length > 0)
+        {
+            sb.AppendLine("Nearby context:")
+              .AppendLine(context);
+        }
         if (compact)
-            sb.AppendLine("Be concise; the client intentionally reduced context to fit the gateway payload limit.");
+            sb.AppendLine("Be concise; this payload was minimized for gateway limits.");
         return sb.ToString();
     }
 
@@ -122,7 +128,7 @@ public sealed class SarmadTranslationService : ITranslationService
 
         var lines = documentContext
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(line => TrimForPrompt(line, 260))
+            .Select(line => TrimForPrompt(line, 160))
             .Where(line => line.Length > 0)
             .ToList();
 
@@ -152,10 +158,10 @@ public sealed class SarmadTranslationService : ITranslationService
             : ex.GetType().Name;
 
         return
-            "تعذر تنفيذ التحليل المعجمي عبر gpt-oss-120b حالياً.\n\n" +
-            $"النص المحدد: {selectedText}\n" +
-            $"السبب التقني: {reason}\n\n" +
-            "لا يمكن توليد خمسة بدائل سياقية موثوقة دون بوابة النموذج. تم تقليل سياق الطلب تلقائياً وإعادة المحاولة، لكن البوابة لم تقبل الطلب. اضبط GatewayBaseUrl على نشر Cloudflare العامل أو أعد المحاولة عند عودة البوابة.";
+            "بوابة المعجم غير متاحة الآن.\n" +
+            $"السبب التقني: {reason}\n" +
+            $"النص المحدد: {selectedText}\n\n" +
+            "تمت إعادة المحاولة بطلبات أصغر حتى طلب الكلمة فقط، لكن البوابة لم تقبل الطلب. لا يمكن توليد خمسة بدائل سياقية موثوقة دون gpt-oss-120b؛ اضبط GatewayBaseUrl على نشر Cloudflare عامل أو أعد المحاولة عند عودة البوابة.";
     }
 
     private async Task<string[]> TranslateSliceAsync(
@@ -367,7 +373,12 @@ public sealed class SarmadTranslationService : ITranslationService
     }
 
     /// <summary>Sends one prompt to the mesh, trying the primary gateway then the fallback.</summary>
-    private async Task<string> AskAsync(string prompt, string targetLanguage, MirrorSettings settings, CancellationToken ct)
+    private async Task<string> AskAsync(
+        string prompt,
+        string targetLanguage,
+        MirrorSettings settings,
+        CancellationToken ct,
+        string? contextOverride = null)
     {
         var urls = new List<string>();
         if (!string.IsNullOrWhiteSpace(settings.GatewayBaseUrl))
@@ -380,7 +391,8 @@ public sealed class SarmadTranslationService : ITranslationService
             Mode = "docs-assistant",
             Surface = "magic-mirror",
             Prompt = prompt,
-            Context = "On-screen text captured by the Magic Mirror overlay. Follow the domain-aware translation policy in the prompt: classify the domain silently, use higher-education scientific Arabic for academic texts, use faithful reverent translation for religious texts, preserve acronyms/terms, and repair only unambiguous OCR noise.",
+            Context = contextOverride ??
+                "On-screen text captured by the Magic Mirror overlay. Follow the domain-aware translation policy in the prompt: classify the domain silently, use higher-education scientific Arabic for academic texts, use faithful reverent translation for religious texts, preserve acronyms/terms, and repair only unambiguous OCR noise.",
             Language = targetLanguage,
             Model = settings.AiModel,
         };

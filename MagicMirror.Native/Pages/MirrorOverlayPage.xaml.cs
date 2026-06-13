@@ -238,6 +238,7 @@ public partial class MirrorOverlayPage : ContentPage
             ApplySettingsToDrawable(_settings.Current);
             _drawable.SelectedBlock = null;
             _drawable.SelectedText = null;
+            _drawable.SelectedTextBounds = null;
             _selectedDictionaryBlock = null;
             _selectedDictionaryText = "";
             DictionaryPanel.IsVisible = false;
@@ -365,6 +366,7 @@ public partial class MirrorOverlayPage : ContentPage
         _drawable.ShowTranslations = false;
         _drawable.SelectedBlock = null;
         _drawable.SelectedText = null;
+        _drawable.SelectedTextBounds = null;
         _selectedDictionaryBlock = null;
         _selectedDictionaryText = "";
         DictionaryPanel.IsVisible = false;
@@ -510,7 +512,10 @@ public partial class MirrorOverlayPage : ContentPage
         _selectedDictionaryText = string.IsNullOrWhiteSpace(hit.Text) ? fallback.Trim() : hit.Text.Trim();
         _drawable.SelectedBlock = hit.Block;
         _drawable.SelectedText = _selectedDictionaryText;
-        LblDictionarySelection.Text = Trunc(_selectedDictionaryText);
+        _drawable.SelectedTextBounds = !hit.IsSource && (hit.IsWord || hit.Bounds.Height <= 90)
+            ? hit.Bounds
+            : null;
+        LblDictionarySelection.Text = $"{Trunc(_selectedDictionaryText, 28)} ⇄ {Trunc(hit.Block.OriginalText, 34)}";
     }
 
     private async void OnDictionaryExplain(object? sender, EventArgs e)
@@ -523,11 +528,9 @@ public partial class MirrorOverlayPage : ContentPage
         LblDictionaryResult.Text = "⏳ يجري بناء التحليل المعجمي عبر النموذج...";
         try
         {
-            var selectedText =
-                $"Selected: {_selectedDictionaryText}\nOriginal block: {_selectedDictionaryBlock.OriginalText}\nCurrent translation: {_selectedDictionaryBlock.TranslatedText}";
             var context = BuildDictionaryContext();
             var result = await _engine.Translator.ExplainDictionaryAsync(
-                selectedText, context, _settings.Current.TargetLanguage, _settings.Current);
+                _selectedDictionaryText, context, _settings.Current.TargetLanguage, _settings.Current);
             LblDictionaryResult.Text = string.IsNullOrWhiteSpace(result)
                 ? "لم يرجع النموذج نتيجة معجمية."
                 : FormatDictionaryResult(result);
@@ -542,6 +545,7 @@ public partial class MirrorOverlayPage : ContentPage
             _busy = false;
             BtnDictionaryExplain.IsEnabled = true;
         }
+        await DictionaryScroll.ScrollToAsync(0, 0, false);
     }
 
     private void OnDictionaryClose(object? sender, EventArgs e)
@@ -551,7 +555,28 @@ public partial class MirrorOverlayPage : ContentPage
         _selectedDictionaryText = "";
         _drawable.SelectedBlock = null;
         _drawable.SelectedText = null;
+        _drawable.SelectedTextBounds = null;
         Canvas.Invalidate();
+    }
+
+    private void OnDictionaryNudge(object? sender, EventArgs e)
+    {
+        if (sender is not Button { CommandParameter: string raw })
+            return;
+
+        var parts = raw.Split(',', StringSplitOptions.TrimEntries);
+        if (parts.Length != 2 ||
+            !double.TryParse(parts[0], out var dx) ||
+            !double.TryParse(parts[1], out var dy))
+            return;
+
+        MoveDictionaryPanel(dx, dy);
+    }
+
+    private void OnDictionaryResetPosition(object? sender, EventArgs e)
+    {
+        DictionaryPanel.TranslationX = 0;
+        DictionaryPanel.TranslationY = 0;
     }
 
     private void OnDictionaryPanelPan(object? sender, PanUpdatedEventArgs e)
@@ -563,12 +588,20 @@ public partial class MirrorOverlayPage : ContentPage
                 _dictionaryPanelStartY = DictionaryPanel.TranslationY;
                 break;
             case GestureStatus.Running:
-                var maxX = Math.Max(120, Canvas.Width - 80);
-                var maxY = Math.Max(120, Canvas.Height - 80);
-                DictionaryPanel.TranslationX = Math.Clamp(_dictionaryPanelStartX + e.TotalX, -maxX, maxX);
-                DictionaryPanel.TranslationY = Math.Clamp(_dictionaryPanelStartY + e.TotalY, -maxY, maxY);
+                SetDictionaryPanelTranslation(_dictionaryPanelStartX + e.TotalX, _dictionaryPanelStartY + e.TotalY);
                 break;
         }
+    }
+
+    private void MoveDictionaryPanel(double dx, double dy)
+        => SetDictionaryPanelTranslation(DictionaryPanel.TranslationX + dx, DictionaryPanel.TranslationY + dy);
+
+    private void SetDictionaryPanelTranslation(double x, double y)
+    {
+        var maxX = Math.Max(120, Canvas.Width - 60);
+        var maxY = Math.Max(120, Canvas.Height - 60);
+        DictionaryPanel.TranslationX = Math.Clamp(x, -maxX, maxX);
+        DictionaryPanel.TranslationY = Math.Clamp(y, -maxY, maxY);
     }
 
     private string BuildDictionaryContext()
@@ -583,14 +616,14 @@ public partial class MirrorOverlayPage : ContentPage
             Enumerable.Range(start, Math.Max(0, end - start + 1)).Select(i =>
             {
                 var block = blocks[i];
-                return $"{i + 1}. Original: {CompactContextLine(block.OriginalText)} | Translation: {CompactContextLine(block.TranslatedText)}";
+                return $"{i + 1}. O: {CompactContextLine(block.OriginalText)} | T: {CompactContextLine(block.TranslatedText)}";
             }));
     }
 
     private static string CompactContextLine(string text)
     {
         var line = (text ?? "").Replace('\r', ' ').Replace('\n', ' ').Trim();
-        return line.Length <= 180 ? line : line.Substring(0, 179).TrimEnd() + "…";
+        return line.Length <= 120 ? line : line.Substring(0, 119).TrimEnd() + "…";
     }
 
     private static string FormatDictionaryResult(string result)

@@ -265,6 +265,17 @@ visible text.
 
 ---
 
+## SPEC-AUTH-021 — Movable dictionary panel, Arabic selection mapping, and gateway acceptance (verbatim, Arabic)
+
+> نافذة المعجم لا يمكن تغيير مكانها وايضا لا يمكن تحديد النص العربي المراد التحقق من موضعه
+> المقايل على الوثيقه وايضا المعجم لا يعمل لكون البوابه لم تقبل الطلب
+
+**English:** The dictionary window cannot be moved; the user also cannot select the Arabic text whose
+corresponding position on the document should be checked; and the dictionary does not work because
+the gateway did not accept the request.
+
+---
+
 ## Standing author conventions (from memory)
 - Document data-extraction/processing functions thoroughly (parameters + protocol) so they can be
   reused to reproduce the same output quality.
