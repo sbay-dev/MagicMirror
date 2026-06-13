@@ -20,14 +20,17 @@ Solution layout:
 - Native bridge: `MagicMirror.Native/Services/CephaMauiBootstrap.cs` (in-process `MvcEngine` +
   `NativeRenderer`, no WebView).
 
-## D2 — AI via gpt-oss-120b through Cloudflare (web gateway + Sarmad fallback)  ⇐ SPEC-AUTH-001
+## D2 — AI via a supported Sarmad/Cloudflare model (web gateway + optional fallback)  ⇐ SPEC-AUTH-001
+- The original author spec requested gpt-oss-120b. The deployed canonical gateway now reports that
+  `@cf/openai/gpt-oss-120b` was deprecated on 2026-05-30, so the executable directive is to use a
+  currently supported Cloudflare Workers AI model.
 - Web gateway: `MagicMirror/MagicMirror.csproj` sets
   `<CephaSarmadPlatform>true</CephaSarmadPlatform>` and
-  `<CephaSarmadModel>@cf/openai/gpt-oss-120b</CephaSarmadModel>`, so a Cloudflare Pages deploy
-  exposes `POST /api/sarmad/ask` backed by Cloudflare Workers AI gpt-oss-120b.
+  `<CephaSarmadModel>@cf/openai/gpt-oss-20b</CephaSarmadModel>`, so a Cloudflare Pages deploy
+  exposes `POST /api/sarmad/ask` backed by a supported Cloudflare Workers AI model.
 - Client: `MagicMirror.Native/Mirror/SarmadTranslationService.cs`
-  - `AskAsync(...)` posts to `{GatewayBaseUrl}/api/sarmad/ask` first, then the canonical
-    `FallbackSarmadUrl` (`https://wmr-doc.pages.dev/api/sarmad/ask`).
+  - `AskAsync(...)` posts to `{GatewayBaseUrl}/api/sarmad/ask` first, then optional
+    `FallbackSarmadUrl` only when explicitly configured.
   - Request contract `{mode, surface, prompt, context, language, model}`, response field `answer`
     parsed by `ExtractAnswer(...)`.
 
@@ -134,7 +137,7 @@ Solution layout:
   - `TranslateSliceAsync` falls back to **free no-key MT** when the AI gateway throws or leaves
     most lines unchanged: `TranslateGoogleGtxAsync` (Google `gtx` endpoint) →
     `TranslateMyMemoryAsync` (MyMemory), per line with bounded parallelism (`MtParallel`).
-  - The AI gateway (gpt-oss-120b via the user's deployed gateway) stays **primary**; MT is the
+  - The AI gateway (configured Sarmad model via the user's deployed gateway) stays **primary**; MT is the
     safety net so the mirror always translates. Verified: self-test logged
     `AI gateway failed (HttpRequestException) — using MT fallback` then real Arabic output.
 - Note: to restore the AI path, deploy the web layer (`cepha publish cf`) with a current
@@ -167,7 +170,7 @@ Solution layout:
 
 ## D17 — Domain-aware highest-quality translation policy  ⇐ SPEC-AUTH-008
 - AI prompt policy: `MagicMirror.Native/Mirror/SarmadTranslationService.cs`
-  `BuildTranslationPrompt(...)` instructs the gpt-oss-120b gateway to silently classify the source
+  `BuildTranslationPrompt(...)` instructs the configured Sarmad gateway to silently classify the source
   domain (scientific/academic, religious/sacred, legal, medical, UI, literary, or general) and then
   choose the correct register.
 - Scientific/academic mode: requires higher-education formal terminology, conceptual precision,
@@ -346,7 +349,7 @@ Solution layout:
 - `MirrorDrawable.SelectedBlock` and `MirrorOverlayPage` right-click handling highlight the selected
   source/translation block and show a contextual dictionary panel.
 - `ITranslationService.ExplainDictionaryAsync(...)` and `SarmadTranslationService` send a strict
-  gpt-oss-120b prompt requiring domain classification from full document context, at least five
+  Sarmad prompt requiring domain classification from full document context, at least five
   lexical alternatives, fit/non-fit notes, and a decisive final recommendation.
 - Dictionary requests use compact nearby document context and retry with an ultra-compact prompt after
   `413 Payload Too Large`; if the gateway still fails, the panel shows the exact technical reason
@@ -390,7 +393,23 @@ Solution layout:
 - `SarmadTranslationService.ExplainDictionaryAsync(...)` retries dictionary requests with progressively
   smaller context, down to a selected-term-only prompt. If the gateway still returns an error (for
   example `HTTP 502 BadGateway`), the panel displays that reason first and does not fabricate lexical
-  alternatives without gpt-oss-120b.
+  alternatives without a working Sarmad model.
+
+## D31 — Sarmad root-cause fix and stale gateway retirement  ⇐ SPEC-AUTH-022
+- Root-cause probe of `https://wmr-doc.pages.dev/api/sarmad/ask` returned
+  `HTTP 502` with `5028: This model was deprecated on 2026-05-30. Please use an alternative model.`
+- A second probe sent `model: @cf/openai/gpt-oss-20b`, but the same 120b deprecation error returned;
+  therefore that gateway is server-side pinned to the retired model and ignores client model
+  overrides.
+- `MagicMirror/MagicMirror.csproj` must use `<CephaSarmadModel>@cf/openai/gpt-oss-20b</CephaSarmadModel>`
+  until a stronger supported Cloudflare Workers AI model is selected.
+- `MirrorSettings.AiModel`, `SarmadRequest.Model`, and `MirrorPage.OnSave(...)` default to
+  `@cf/openai/gpt-oss-20b`.
+- `MirrorSettingsStore.Normalize(...)` migrates saved settings away from
+  `@cf/openai/gpt-oss-120b` and clears the deprecated `wmr-doc.pages.dev` fallback URL.
+- With no configured gateway, `SarmadTranslationService` uses MT fallback for translation but returns
+  a clear "بوابة المعجم غير مضبوطة" status for dictionary analysis; it must not call the stale
+  documentation gateway or fabricate dictionary alternatives.
 
 ---
 

@@ -4,7 +4,7 @@
 
 <div class="cepha-hero">
     <h1>🪞 Magic Mirror — المرآة السحرية</h1>
-    <p class="lead">The web layer — fonts + the <strong>gpt-oss-120b</strong> AI gateway for the native overlay.</p>
+    <p class="lead">The web layer — fonts + the <strong>gpt-oss-20b</strong> Sarmad gateway for the native overlay.</p>
     <p class="text-muted">ASP.NET MVC running entirely in WebAssembly with <strong>NetWasmMvc.SDK</strong>.</p>
 </div>
 
@@ -13,7 +13,7 @@
         <div class="cepha-card-body">
             <h3>🤖 AI gateway</h3>
             <p>Deploys <code>POST /api/sarmad/ask</code> on Cloudflare Pages, routed to Cloudflare
-               Workers AI <code>@@cf/openai/gpt-oss-120b</code>. The native mirror calls it to
+               Workers AI <code>@@cf/openai/gpt-oss-20b</code>. The native mirror calls it to
                translate captured text.</p>
             <span class="cepha-chip cepha-chip-success">CephaSarmadPlatform</span>
         </div>
@@ -44,6 +44,6 @@
 <div class="cepha-panel cepha-panel-info" style="margin-top:1.5rem;">
     <p>Deploy this layer with <code>cepha publish cf</code>, then set the native app's
        <strong>AI gateway base URL</strong> to this site so translations use
-       <code>@@cf/openai/gpt-oss-120b</code>. Without a deploy, the native app falls back to the
-       canonical Sarmad mesh.</p>
+       <code>@@cf/openai/gpt-oss-20b</code>. Without a deploy, translation uses MT fallback and
+       dictionary analysis remains unavailable until a real gateway is configured.</p>
 </div>

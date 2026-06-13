@@ -546,7 +546,7 @@ public partial class MirrorOverlayPage : ContentPage
         catch (Exception ex)
         {
             MirrorLog.Error("Dictionary explain", ex);
-            ShowDictionaryStatus("تعذر تنفيذ التحليل المعجمي. راجع سجل المرآة لمعرفة سبب بوابة gpt-oss-120b.");
+            ShowDictionaryStatus("تعذر تنفيذ التحليل المعجمي. راجع سجل المرآة لمعرفة سبب بوابة سرمد.");
         }
         finally
         {

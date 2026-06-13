@@ -203,7 +203,7 @@ public partial class MirrorPage : ContentPage
 
         var s = _settings.Current;
         LblAi.Text = "AI: " + (string.IsNullOrWhiteSpace(s.GatewayBaseUrl)
-            ? $"canonical mesh · {s.AiModel}"
+            ? $"not configured · MT fallback · {s.AiModel}"
             : $"{s.GatewayBaseUrl} · {s.AiModel}");
     }
 
@@ -243,7 +243,7 @@ public partial class MirrorPage : ContentPage
         s.LayoutMode = LayoutModes[Clamp(PickerLayout.SelectedIndex, LayoutModes.Length)].Value;
         s.IdlePreviewFps = SliderFps.Value;
         s.GatewayBaseUrl = (EntryGateway.Text ?? "").Trim();
-        s.AiModel = string.IsNullOrWhiteSpace(EntryModel.Text) ? "@cf/openai/gpt-oss-120b" : EntryModel.Text.Trim();
+        s.AiModel = string.IsNullOrWhiteSpace(EntryModel.Text) ? "@cf/openai/gpt-oss-20b" : EntryModel.Text.Trim();
         s.TesseractLanguages = string.IsNullOrWhiteSpace(EntryTessLangs.Text) ? "eng+ara" : EntryTessLangs.Text.Trim();
         s.TessDataPath = (EntryTessData.Text ?? "").Trim();
         s.TesseractExePath = (EntryTessExe.Text ?? "").Trim();

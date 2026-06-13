@@ -12,20 +12,20 @@ ZIP packages to GitHub Releases.
 ## Package Windows build
 
 ```powershell
-.\scripts\package-windows.ps1 -Version 1.0.2
+.\scripts\package-windows.ps1 -Version 1.0.3
 ```
 
 Output:
 
 ```text
-artifacts\MagicMirror-v1.0.2-windows-x64.zip
+artifacts\MagicMirror-v1.0.3-windows-x64.zip
 ```
 
 ## Publish release
 
 ```powershell
-gh release create v1.0.2 `
-  artifacts\MagicMirror-v1.0.2-windows-x64.zip `
-  --title "Magic Mirror v1.0.2" `
-  --notes-file docs\releases\v1.0.2.md
+gh release create v1.0.3 `
+  artifacts\MagicMirror-v1.0.3-windows-x64.zip `
+  --title "Magic Mirror v1.0.3" `
+  --notes-file docs\releases\v1.0.3.md
 ```

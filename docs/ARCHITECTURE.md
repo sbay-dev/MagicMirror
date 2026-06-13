@@ -12,7 +12,8 @@ Responsibilities:
 
 - Settings UI and Cepha Material UI pages.
 - Sarmad AI gateway contract.
-- Cloudflare Pages deployment target for `@cf/openai/gpt-oss-120b`.
+- Cloudflare Pages deployment target for a supported Workers AI model such as
+  `@cf/openai/gpt-oss-20b`.
 
 ## Native layer - `MagicMirror.Native/`
 

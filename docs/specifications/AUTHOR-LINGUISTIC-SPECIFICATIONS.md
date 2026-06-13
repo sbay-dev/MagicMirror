@@ -276,6 +276,15 @@ the gateway did not accept the request.
 
 ---
 
+## SPEC-AUTH-022 — Sarmad gateway root cause must be investigated (verbatim, Arabic)
+
+> هذا يعني ان بوابه سرمد لا تعمل منذ البداية بالتالي يجب ان نحقق في المشكله الجذرية
+
+**English:** This means the Sarmad gateway has not been working from the beginning; therefore the
+root cause must be investigated.
+
+---
+
 ## Standing author conventions (from memory)
 - Document data-extraction/processing functions thoroughly (parameters + protocol) so they can be
   reused to reproduce the same output quality.

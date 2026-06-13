@@ -13,11 +13,11 @@ before maintainers have had time to review and mitigate.
 ## Data handling
 
 Magic Mirror captures the pixels/text inside the overlay rectangle selected by
-the user. Translation requests are sent only to the configured Sarmad gateway:
+the user. AI translation and dictionary requests are sent only to configured
+Sarmad gateways:
 
 - Primary: `GatewayBaseUrl + /api/sarmad/ask`, when configured.
-- Fallback: `https://wmr-doc.pages.dev/api/sarmad/ask`, when enabled in
-  settings.
+- Optional fallback: `FallbackSarmadUrl`, only when explicitly configured.
 
 Do not configure a gateway you do not trust for sensitive documents. The app
 does not require API keys in the client repository.

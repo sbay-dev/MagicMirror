@@ -172,11 +172,14 @@ public sealed class MirrorSettings
     /// </summary>
     public string GatewayBaseUrl { get; set; } = "";
 
-    /// <summary>Fallback Sarmad mesh used when the primary gateway is empty/unreachable.</summary>
-    public string FallbackSarmadUrl { get; set; } = "https://wmr-doc.pages.dev/api/sarmad/ask";
+    /// <summary>
+    /// Optional fallback Sarmad mesh used when the primary gateway is empty/unreachable.
+    /// Empty by default because the documentation gateway is not a product endpoint.
+    /// </summary>
+    public string FallbackSarmadUrl { get; set; } = "";
 
     /// <summary>Cloudflare Workers AI model id requested through the mesh.</summary>
-    public string AiModel { get; set; } = "@cf/openai/gpt-oss-120b";
+    public string AiModel { get; set; } = "@cf/openai/gpt-oss-20b";
 
     /// <summary>Optional explicit path to a Windows tesseract.exe; empty = auto-discover.</summary>
     public string TesseractExePath { get; set; } = "";

@@ -200,7 +200,7 @@
                     <VerticalStackLayout Spacing="8">
                         <Label Text="◇ AI &amp; ENGINE" Style="{StaticResource Section}" TextColor="#3B82F6" />
 
-                        <Label Text="AI gateway base URL (your deployed web layer; blank = canonical mesh)"
+                        <Label Text="AI gateway base URL (your deployed web layer; blank = MT fallback only)"
                                Style="{StaticResource Field}" />
                         <Entry x:Name="EntryGateway" Placeholder="https://your-app.pages.dev" PlaceholderColor="#52708F" />
 

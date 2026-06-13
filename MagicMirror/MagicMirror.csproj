@@ -5,10 +5,10 @@
     <AssemblyName>MagicMirror</AssemblyName>
 
     <!-- Sarmad AI mesh: exposes POST /api/sarmad/ask on Cloudflare Pages, routed to
-         Cloudflare Workers AI @cf/openai/gpt-oss-120b. This is the "web gateway" the
+         a currently supported Cloudflare Workers AI model. This is the "web gateway" the
          native Magic Mirror overlay calls to translate captured text. -->
     <CephaSarmadPlatform>true</CephaSarmadPlatform>
-    <CephaSarmadModel>@cf/openai/gpt-oss-120b</CephaSarmadModel>
+    <CephaSarmadModel>@cf/openai/gpt-oss-20b</CephaSarmadModel>
     <CephaSarmadMeshEndpoint>/api/sarmad/ask</CephaSarmadMeshEndpoint>
     <CephaSarmadRewardCouncil>true</CephaSarmadRewardCouncil>
     <CephaSarmadLanguage>ar-SA</CephaSarmadLanguage>

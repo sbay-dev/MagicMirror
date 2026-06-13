@@ -9,14 +9,14 @@ namespace MagicMirror.Native.Mirror;
 /// <summary>
 /// Translates OCR text into the user's main language. Resilient provider chain:
 ///   1. <b>Sarmad AI gateway</b> (<c>POST /api/sarmad/ask</c>, Cloudflare Workers AI / the model in
-///      <see cref="MirrorSettings.AiModel"/> such as <c>@cf/openai/gpt-oss-120b</c>): the user's own
-///      <see cref="MirrorSettings.GatewayBaseUrl"/> first, then the canonical
+///      <see cref="MirrorSettings.AiModel"/> such as <c>@cf/openai/gpt-oss-20b</c>): the user's own
+///      <see cref="MirrorSettings.GatewayBaseUrl"/> first, then the optional
 ///      <see cref="MirrorSettings.FallbackSarmadUrl"/>.
 ///   2. <b>Free no-key machine translation</b> (Google <c>gtx</c> → MyMemory) when the AI gateway
 ///      is unreachable or returns an error — so the mirror keeps translating even if the mesh is
 ///      down (e.g. a deprecated upstream model).
 ///
-/// The AI path stays primary so a correctly-deployed gateway uses gpt-oss-120b as designed; the MT
+/// The AI path stays primary so a correctly-deployed gateway uses the configured Sarmad model; the MT
 /// fallback guarantees the feature works regardless of mesh availability.
 /// </summary>
 public sealed class SarmadTranslationService : ITranslationService
@@ -69,6 +69,9 @@ public sealed class SarmadTranslationService : ITranslationService
             throw new ArgumentException("No selected text for dictionary explanation.", nameof(selectedText));
 
         var selected = TrimForPrompt(selectedText.Trim(), 240);
+        if (string.IsNullOrWhiteSpace(settings.GatewayBaseUrl) && string.IsNullOrWhiteSpace(settings.FallbackSarmadUrl))
+            return BuildDictionaryNotConfiguredMessage(selected);
+
         var targetName = LanguageName(targetLanguage);
 
         Exception? last = null;
@@ -161,7 +164,15 @@ public sealed class SarmadTranslationService : ITranslationService
             "بوابة المعجم غير متاحة الآن.\n" +
             $"السبب التقني: {reason}\n" +
             $"النص المحدد: {selectedText}\n\n" +
-            "تمت إعادة المحاولة بطلبات أصغر حتى طلب الكلمة فقط، لكن البوابة لم تقبل الطلب. لا يمكن توليد خمسة بدائل سياقية موثوقة دون gpt-oss-120b؛ اضبط GatewayBaseUrl على نشر Cloudflare عامل أو أعد المحاولة عند عودة البوابة.";
+            "تمت إعادة المحاولة بطلبات أصغر حتى طلب الكلمة فقط، لكن البوابة لم تقبل الطلب. لا يمكن توليد خمسة بدائل سياقية موثوقة دون نموذج سرمد عامل؛ اضبط GatewayBaseUrl على نشر Cloudflare عامل يستخدم نموذجًا مدعومًا مثل @cf/openai/gpt-oss-20b.";
+    }
+
+    private static string BuildDictionaryNotConfiguredMessage(string selectedText)
+    {
+        return
+            "بوابة المعجم غير مضبوطة.\n" +
+            $"النص المحدد: {selectedText}\n\n" +
+            "تم تعطيل fallback القديم لأنه كان يشير إلى بوابة وثائق تستخدم نموذجًا منتهيًا. للمعجم السياقي اضبط GatewayBaseUrl على نشر MagicMirror/Cloudflare الخاص بك، وتأكد أن النموذج هو @cf/openai/gpt-oss-20b أو نموذج Cloudflare مدعوم.";
     }
 
     private async Task<string[]> TranslateSliceAsync(
@@ -485,7 +496,7 @@ public sealed class SarmadTranslationService : ITranslationService
         [JsonPropertyName("prompt")] public string Prompt { get; set; } = "";
         [JsonPropertyName("context")] public string Context { get; set; } = "";
         [JsonPropertyName("language")] public string Language { get; set; } = "ar";
-        [JsonPropertyName("model")] public string Model { get; set; } = "@cf/openai/gpt-oss-120b";
+        [JsonPropertyName("model")] public string Model { get; set; } = "@cf/openai/gpt-oss-20b";
     }
 
     private static class SarmadJson

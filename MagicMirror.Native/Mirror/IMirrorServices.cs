@@ -34,7 +34,7 @@ public interface IOcrEngine
     Task<IReadOnlyList<OcrTextRegion>> RecognizeAsync(CaptureResult capture, MirrorSettings settings, CancellationToken ct = default);
 }
 
-/// <summary>Translates recognised text into the user's main language via the gpt-oss-120b mesh.</summary>
+/// <summary>Translates recognised text into the user's main language via the configured Sarmad mesh.</summary>
 public interface ITranslationService
 {
     /// <summary>

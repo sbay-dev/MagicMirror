@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.3 - 2026-06-13
+
+### Fixed
+- Root-caused the Sarmad failure: the canonical documentation gateway was still
+  deployed against deprecated `@cf/openai/gpt-oss-120b`, and ignored client
+  model overrides.
+- Updated the Magic Mirror web layer and native defaults to
+  `@cf/openai/gpt-oss-20b`.
+- Disabled the broken `wmr-doc.pages.dev` gateway as a default product fallback;
+  blank gateway settings now mean MT fallback for translation and an explicit
+  "dictionary gateway not configured" status for dictionary analysis.
+
 ## v1.0.2 - 2026-06-13
 
 ### Fixed

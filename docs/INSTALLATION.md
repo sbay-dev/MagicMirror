@@ -4,7 +4,7 @@
 
 1. Open the latest release:
    <https://github.com/sbay-dev/MagicMirror/releases/latest>
-2. Download `MagicMirror-v1.0.2-windows-x64.zip`.
+2. Download `MagicMirror-v1.0.3-windows-x64.zip`.
 3. Extract the ZIP to a writable folder.
 4. Run `MagicMirror.Native.exe`.
 
@@ -36,15 +36,16 @@ The native app posts to:
 {GatewayBaseUrl}/api/sarmad/ask
 ```
 
-When `GatewayBaseUrl` is empty or unavailable, it can fall back to:
+When `GatewayBaseUrl` is empty or unavailable, translation uses the no-key MT
+fallback for continuity. Dictionary alternatives require a configured Sarmad
+gateway and will report that the gateway is not configured instead of
+fabricating results.
 
-```text
-https://wmr-doc.pages.dev/api/sarmad/ask
-```
-
-Translation has an MT fallback for continuity. Dictionary alternatives require
-the AI gateway and will report the exact gateway failure instead of fabricating
-results.
+The old documentation gateway at `https://wmr-doc.pages.dev/api/sarmad/ask` is
+not used as a default product fallback because it was deployed against the
+deprecated `@cf/openai/gpt-oss-120b` model. Deploy this repository's web layer
+with a supported model such as `@cf/openai/gpt-oss-20b`, then set
+`GatewayBaseUrl` to that deployment.
 
 ## OCR
 

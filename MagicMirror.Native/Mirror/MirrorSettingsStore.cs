@@ -8,6 +8,10 @@ namespace MagicMirror.Native.Mirror;
 /// </summary>
 public sealed class MirrorSettingsStore
 {
+    private const string DeprecatedSarmadModel = "@cf/openai/gpt-oss-120b";
+    private const string CurrentSarmadModel = "@cf/openai/gpt-oss-20b";
+    private const string DeprecatedCanonicalSarmadUrl = "https://wmr-doc.pages.dev/api/sarmad/ask";
+
     private readonly string _path;
     private MirrorSettings _current;
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
@@ -70,6 +74,20 @@ public sealed class MirrorSettingsStore
 
         if (string.IsNullOrWhiteSpace(settings.TargetLanguage))
             settings.TargetLanguage = "ar";
+        if (string.IsNullOrWhiteSpace(settings.AiModel) ||
+            string.Equals(settings.AiModel.Trim(), DeprecatedSarmadModel, StringComparison.OrdinalIgnoreCase))
+        {
+            settings.AiModel = CurrentSarmadModel;
+        }
+        else
+        {
+            settings.AiModel = settings.AiModel.Trim();
+        }
+
+        settings.GatewayBaseUrl = (settings.GatewayBaseUrl ?? "").Trim();
+        settings.FallbackSarmadUrl = (settings.FallbackSarmadUrl ?? "").Trim();
+        if (string.Equals(settings.FallbackSarmadUrl.TrimEnd('/'), DeprecatedCanonicalSarmadUrl, StringComparison.OrdinalIgnoreCase))
+            settings.FallbackSarmadUrl = "";
 
         return settings;
     }

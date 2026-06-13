@@ -18,7 +18,7 @@ while preserving document structure, typography, and reading direction.
   capture.
 - Reads exposed window text through UI Automation when available.
 - Falls back to OCR through Tesseract or Windows.Media.Ocr.
-- Translates through a Sarmad / Cloudflare `@cf/openai/gpt-oss-120b` gateway,
+- Translates through a deployed Sarmad / Cloudflare `@cf/openai/gpt-oss-20b` gateway,
   with machine-translation fallback for continuity.
 - Renders Arabic-first document output with robust RTL/LTR handling for
   acronyms and scientific terms such as `CNS`, `LCNS`, and `QKV`.
@@ -27,7 +27,7 @@ while preserving document structure, typography, and reading direction.
 
 ## Quick start from release
 
-1. Download `MagicMirror-v1.0.2-windows-x64.zip` from
+1. Download `MagicMirror-v1.0.3-windows-x64.zip` from
    <https://github.com/sbay-dev/MagicMirror/releases/latest>.
 2. Extract the ZIP.
 3. Run `MagicMirror.Native.exe`.
@@ -61,7 +61,7 @@ dotnet run --project .\MagicMirror.Native\MagicMirror.Native.csproj `
 Create a release ZIP:
 
 ```powershell
-.\scripts\package-windows.ps1 -Version 1.0.2
+.\scripts\package-windows.ps1 -Version 1.0.3
 ```
 
 ## Repository layout
