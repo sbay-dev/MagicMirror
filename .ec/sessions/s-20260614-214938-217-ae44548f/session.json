@@ -1,0 +1,12 @@
+{
+  "session_id": "s-20260614-214938-217-ae44548f",
+  "phase": "finalized",
+  "workspace_root": "X:\\source\\repos\\Migic-Mirror",
+  "council_root": "X:\\source\\repos\\Migic-Mirror\\.ec\\sessions\\s-20260614-214938-217-ae44548f",
+  "app_path": "X:\\source\\nomic-embed-text-v2-moe-ONNX\\experts-council\\app\\council.ps1",
+  "terminal_identity": "shell:pwsh.exe:30200:06/13/2026 15:38:53",
+  "terminal_key": "7fe18898070ad022c642a46e",
+  "isolated": true,
+  "created_at": "2026-06-14T21:49:38.3550899Z",
+  "updated_at": "2026-06-14T22:21:14.7465628Z"
+}

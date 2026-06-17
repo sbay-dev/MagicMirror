@@ -1,0 +1,19 @@
+{
+  "slug": "ec-translation-semantics",
+  "leaf": "d2b3b950906c62372ca71e6d637fac47d1e57703610645ac67cced87331ad62f",
+  "root": "27715715f4236048bc9a1dc78859626cd0c66281e143752a381249cf0966a7dc",
+  "siblings": [
+    {
+      "pos": "R",
+      "hash": "d3aaff05ddbee8539a2118c76a77eae6ac70ebde73a2b1bd134b08f520005896"
+    },
+    {
+      "pos": "L",
+      "hash": "94bca3169c75c9917d33c5d2d47012be2884d2d62e81fc714eaf01a496b7505f"
+    },
+    {
+      "pos": "R",
+      "hash": "71c6b9773d0d1caea53f69d9c11ece78ab70f93cc4e7f5515a32571ac0a6e0c8"
+    }
+  ]
+}

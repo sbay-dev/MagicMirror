@@ -4,7 +4,7 @@
 
 1. Open the latest release:
    <https://github.com/sbay-dev/MagicMirror/releases/latest>
-2. Download `MagicMirror-v1.0.4-windows-x64.zip`.
+2. Download `MagicMirror-v1.0.5-windows-x64.zip`.
 3. Extract the ZIP to a writable folder.
 4. Run `MagicMirror.Native.exe`.
 
@@ -16,7 +16,9 @@ you downloaded the file from the official `sbay-dev/MagicMirror` release page.
 - Windows 10 1809 or newer.
 - .NET 10 runtime/SDK for framework-dependent builds.
 - Windows OCR language packs for native OCR fallback.
-- Optional: local Tesseract installation for `eng+ara` OCR.
+- Optional: local Tesseract installation with `eng`/`ara` traineddata. The app
+  auto-discovers tessdata from the Tesseract install, the app folder, or
+  `TESSDATA_PREFIX`; configure `TessDataPath` only when auto-discovery fails.
 
 ## First run
 
@@ -36,10 +38,14 @@ The native app posts to:
 {GatewayBaseUrl}/api/sarmad/ask
 ```
 
-When `GatewayBaseUrl` is empty or unavailable, translation uses the no-key MT
-fallback for continuity. Dictionary alternatives require a configured Sarmad
-gateway and will report that the gateway is not configured instead of
-fabricating results.
+When `GatewayBaseUrl` is empty, unavailable, or returns unusable/wrong-language
+output, the app keeps the Sarmad/original path unless the user explicitly
+confirms the MT prompt for that translation run. MT fallback sends text to
+third-party MT services (Google `gtx` / MyMemory), is not equivalent to the
+domain-aware academic Sarmad AI path, and should be declined for confidential
+manuscripts or publisher-style review. Dictionary alternatives require a
+configured Sarmad gateway and will report that the gateway is not configured
+instead of fabricating results.
 
 The old documentation gateway at `https://wmr-doc.pages.dev/api/sarmad/ask` is
 not used as a default product fallback because it was deployed against the
@@ -60,8 +66,7 @@ replace the gateway.
 The pipeline prefers UI Automation text when the target window exposes it. If no
 accessible text is available, it uses OCR:
 
-- Tesseract, when `TesseractExePath` and `TessDataPath` are configured or
-  discoverable.
+- Tesseract, when `tesseract.exe` and tessdata are configured or discoverable.
 - Windows.Media.Ocr as fallback.
 
 ## Logs

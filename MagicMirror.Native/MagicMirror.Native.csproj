@@ -22,7 +22,6 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		    <Nullable>enable</Nullable>
-    <WindowsPackageType>None</WindowsPackageType>
     <RunAOTCompilation>false</RunAOTCompilation>
     <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>
@@ -44,8 +43,8 @@
 		<ApplicationId>com.sbay.cepha.magicmirror</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.0.5</ApplicationDisplayVersion>
+		<ApplicationVersion>105</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -104,7 +103,7 @@
 
   <!-- Transitive dependencies required by WasmMvcRuntime on Android -->
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="*" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="10.0.*" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Connections.Common" Version="10.0.*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.*" />

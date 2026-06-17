@@ -7,7 +7,7 @@ public interface IScreenCapture
     /// Captures a screen rectangle in device pixels (full resolution, PNG-encoded for OCR).
     /// Implementations must exclude the mirror overlay itself from the result.
     /// </summary>
-    Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height);
+    Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height, double qualityScale = 1.0);
 
     /// <summary>
     /// Fast, lower-resolution capture for the live see-through preview — downscaled and cheaply
@@ -42,7 +42,14 @@ public interface ITranslationService
     /// Returns translations aligned 1:1 with <paramref name="sources"/>; on failure the
     /// corresponding entry falls back to the original text.
     /// </summary>
-    Task<IReadOnlyList<string>> TranslateBatchAsync(
+    Task<TranslationBatchResult> TranslateBatchAsync(
+        IReadOnlyList<string> sources, string targetLanguage, MirrorSettings settings, CancellationToken ct = default);
+
+    /// <summary>
+    /// Translates in small ordered batches and yields each completed slice so the overlay can
+    /// update progressively instead of waiting for the whole document.
+    /// </summary>
+    IAsyncEnumerable<TranslationBatchProgress> TranslateBatchProgressiveAsync(
         IReadOnlyList<string> sources, string targetLanguage, MirrorSettings settings, CancellationToken ct = default);
 
     /// <summary>
@@ -52,6 +59,31 @@ public interface ITranslationService
     Task<string> ExplainDictionaryAsync(
         string selectedText, string documentContext, string targetLanguage, MirrorSettings settings, CancellationToken ct = default);
 }
+
+public enum TranslationSourceKind
+{
+    SarmadGateway,
+    MachineTranslationFallback,
+    OriginalTextFallback,
+    Mixed,
+}
+
+public sealed record TranslationBatchResult(
+    IReadOnlyList<string> Lines,
+    TranslationSourceKind Source,
+    string SourceLabel,
+    IReadOnlyList<TranslationSourceKind> LineSources,
+    IReadOnlyList<string> LineSourceLabels);
+
+public sealed record TranslationBatchProgress(
+    int StartIndex,
+    IReadOnlyList<string> Lines,
+    TranslationSourceKind Source,
+    string SourceLabel,
+    IReadOnlyList<TranslationSourceKind> LineSources,
+    IReadOnlyList<string> LineSourceLabels,
+    int Completed,
+    int Total);
 
 /// <summary>
 /// Extracts text and bounding boxes directly from the window under a screen rectangle (e.g. via

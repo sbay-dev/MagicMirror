@@ -10,6 +10,7 @@ public partial class MirrorPage : ContentPage
 {
     private readonly MirrorEngine _engine;
     private readonly MirrorSettingsStore _settings;
+    private readonly GlossaryMemoryStore _glossaryMemory;
     private readonly IReadOnlyList<IOcrEngine> _ocrEngines;
     private readonly ITranslationService _translator;
 
@@ -39,11 +40,17 @@ public partial class MirrorPage : ContentPage
         ("Uniform size", OverlayLayoutMode.Uniform),
     };
 
-    public MirrorPage(MirrorEngine engine, MirrorSettingsStore settings, IEnumerable<IOcrEngine> ocrEngines, ITranslationService translator)
+    public MirrorPage(
+        MirrorEngine engine,
+        MirrorSettingsStore settings,
+        GlossaryMemoryStore glossaryMemory,
+        IEnumerable<IOcrEngine> ocrEngines,
+        ITranslationService translator)
     {
         InitializeComponent();
         _engine = engine;
         _settings = settings;
+        _glossaryMemory = glossaryMemory;
         _ocrEngines = ocrEngines.ToList();
         _translator = translator;
 
@@ -145,7 +152,7 @@ public partial class MirrorPage : ContentPage
         {
             var t = await _translator.TranslateBatchAsync(
                 new[] { "File", "Save changes", "Settings" }, _settings.Current.TargetLanguage, _settings.Current);
-            MirrorLog.Info("translate-only: " + string.Join(" | ", t));
+            MirrorLog.Info($"translate-only ({t.SourceLabel}): " + string.Join(" | ", t.Lines));
         }
         catch (Exception ex) { MirrorLog.Error("translate-only", ex); }
 
@@ -177,6 +184,7 @@ public partial class MirrorPage : ContentPage
         SliderFps.Value = s.IdlePreviewFps;
         EntryGateway.Text = s.GatewayBaseUrl;
         EntryModel.Text = s.AiModel;
+        SwitchMtFallback.IsToggled = s.AllowMachineTranslationFallback;
         EntryTessLangs.Text = s.TesseractLanguages;
         EntryTessData.Text = s.TessDataPath;
         EntryTessExe.Text = s.TesseractExePath;
@@ -203,13 +211,13 @@ public partial class MirrorPage : ContentPage
 
         var s = _settings.Current;
         LblAi.Text = "AI: " + (string.IsNullOrWhiteSpace(s.GatewayBaseUrl)
-            ? $"not configured · MT fallback · {s.AiModel}"
+            ? $"not configured · {(s.AllowMachineTranslationFallback ? "MT prompt available (non-academic)" : "no MT fallback")} · {s.AiModel}"
             : $"{s.GatewayBaseUrl} · {s.AiModel}");
     }
 
     private void OnOpenMirror(object? sender, EventArgs e)
     {
-        var overlay = new MirrorOverlayPage(_engine, _settings);
+        var overlay = new MirrorOverlayPage(_engine, _settings, _glossaryMemory);
         var win = new Window(overlay) { Title = "Magic Mirror Overlay", Width = 540, Height = 340, X = 240, Y = 200 };
         Application.Current?.OpenWindow(win);
     }
@@ -244,6 +252,7 @@ public partial class MirrorPage : ContentPage
         s.IdlePreviewFps = SliderFps.Value;
         s.GatewayBaseUrl = (EntryGateway.Text ?? "").Trim();
         s.AiModel = string.IsNullOrWhiteSpace(EntryModel.Text) ? "@cf/openai/gpt-oss-20b" : EntryModel.Text.Trim();
+        s.AllowMachineTranslationFallback = SwitchMtFallback.IsToggled;
         s.TesseractLanguages = string.IsNullOrWhiteSpace(EntryTessLangs.Text) ? "eng+ara" : EntryTessLangs.Text.Trim();
         s.TessDataPath = (EntryTessData.Text ?? "").Trim();
         s.TesseractExePath = (EntryTessExe.Text ?? "").Trim();

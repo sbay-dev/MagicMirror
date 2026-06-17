@@ -1,0 +1,19 @@
+{
+  "slug": "ec-academic-ux",
+  "leaf": "de4b18e5ef2cd94f45ae5cf8093c34e265edf4c940c6dbc5716dda2869a5d1ce",
+  "root": "27715715f4236048bc9a1dc78859626cd0c66281e143752a381249cf0966a7dc",
+  "siblings": [
+    {
+      "pos": "R",
+      "hash": "ec800db691e2b4657e498b9af1d793fc135b6208211f77da3795c04525817ef5"
+    },
+    {
+      "pos": "R",
+      "hash": "224c8884747a1ad34e9681d101b7eaf8e8933ea794131caf37006b807154f479"
+    },
+    {
+      "pos": "L",
+      "hash": "bc8c03b036febca52737b8856e92e717ea5cc34ebaf2c0134ba986180e3d5705"
+    }
+  ]
+}

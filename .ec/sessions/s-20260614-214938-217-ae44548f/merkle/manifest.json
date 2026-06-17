@@ -1,0 +1,13 @@
+{
+  "root": "27715715f4236048bc9a1dc78859626cd0c66281e143752a381249cf0966a7dc",
+  "leaves": 6,
+  "level_sizes": [
+    6,
+    4,
+    2,
+    1
+  ],
+  "prompt_sha256": "1984f97517ef7c81ff6bcbcc9f168a24947c5b0f6756e44d6cc6837a7b4e8c33",
+  "sealed_at": "2026-06-14T22:20:37.6322025Z",
+  "generated_by": "experts-council-app"
+}

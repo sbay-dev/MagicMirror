@@ -19,6 +19,7 @@ public static class MauiProgram
 
 		// ── Magic Mirror services ──────────────────────────────────────────
 		builder.Services.AddSingleton<MirrorSettingsStore>();
+		builder.Services.AddSingleton<GlossaryMemoryStore>();
 		builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(40) });
 		builder.Services.AddSingleton<ITranslationService, SarmadTranslationService>();
 

@@ -44,8 +44,9 @@ public sealed class TesseractOcrEngine : IOcrEngine
         {
             var args = new StringBuilder();
             args.Append('"').Append(tmp).Append("\" stdout ");
-            if (!string.IsNullOrWhiteSpace(settings.TessDataPath) && Directory.Exists(settings.TessDataPath))
-                args.Append("--tessdata-dir \"").Append(settings.TessDataPath).Append("\" ");
+            var tessData = ResolveTessDataDir(settings, exe);
+            if (!string.IsNullOrWhiteSpace(tessData))
+                args.Append("--tessdata-dir \"").Append(tessData).Append("\" ");
             args.Append("-l ").Append(string.IsNullOrWhiteSpace(settings.TesseractLanguages) ? "eng" : settings.TesseractLanguages);
             args.Append(" --psm 6 tsv");
 
@@ -61,8 +62,16 @@ public sealed class TesseractOcrEngine : IOcrEngine
             };
             using var proc = Process.Start(psi);
             if (proc == null) return Array.Empty<OcrTextRegion>();
-            string tsv = await proc.StandardOutput.ReadToEndAsync(ct);
+            var stdout = proc.StandardOutput.ReadToEndAsync(ct);
+            var stderr = proc.StandardError.ReadToEndAsync(ct);
             await proc.WaitForExitAsync(ct);
+            string tsv = await stdout;
+            if (proc.ExitCode != 0)
+            {
+                var error = (await stderr).Trim();
+                MirrorLog.Info($"Tesseract exited {proc.ExitCode}" + (error.Length > 0 ? $": {error}" : ""));
+                return Array.Empty<OcrTextRegion>();
+            }
             return ParseTsvIntoLines(tsv);
         }
         finally
@@ -176,4 +185,53 @@ public sealed class TesseractOcrEngine : IOcrEngine
 
         return null;
     }
+
+    private static string? ResolveTessDataDir(MirrorSettings settings, string exe)
+    {
+        if (!string.IsNullOrWhiteSpace(settings.TessDataPath) && Directory.Exists(settings.TessDataPath))
+            return settings.TessDataPath;
+
+        var candidates = new List<string>();
+        AddTessDataCandidate(candidates, Environment.GetEnvironmentVariable("TESSDATA_PREFIX"));
+        AddTessDataCandidate(candidates, Path.Combine(AppContext.BaseDirectory, "tessdata"));
+        AddTessDataCandidate(candidates, Path.Combine(AppContext.BaseDirectory, "tesseract", "tessdata"));
+
+        var exeDir = Path.GetDirectoryName(exe);
+        if (!string.IsNullOrWhiteSpace(exeDir))
+        {
+            AddTessDataCandidate(candidates, Path.Combine(exeDir, "tessdata"));
+            AddTessDataCandidate(candidates, Path.Combine(exeDir, "..", "tessdata"));
+        }
+
+        AddTessDataCandidate(candidates, @"C:\Program Files\Tesseract-OCR\tessdata");
+        AddTessDataCandidate(candidates, @"C:\Program Files (x86)\Tesseract-OCR\tessdata");
+        AddTessDataCandidate(candidates, Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Programs", "Tesseract-OCR", "tessdata"));
+
+        return candidates.FirstOrDefault(IsUsableTessDataDirectory);
+    }
+
+    private static void AddTessDataCandidate(List<string> candidates, string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        try
+        {
+            var normalized = Path.GetFullPath(path.Trim().Trim('"'));
+            candidates.Add(normalized);
+            if (!normalized.EndsWith("tessdata", StringComparison.OrdinalIgnoreCase))
+                candidates.Add(Path.Combine(normalized, "tessdata"));
+        }
+        catch (Exception ex)
+        {
+            MirrorLog.Info($"Ignoring invalid tessdata candidate '{path}': {ex.GetType().Name}");
+        }
+    }
+
+    private static bool IsUsableTessDataDirectory(string path)
+        => Directory.Exists(path) &&
+           (File.Exists(Path.Combine(path, "eng.traineddata")) ||
+            File.Exists(Path.Combine(path, "ara.traineddata")));
 }

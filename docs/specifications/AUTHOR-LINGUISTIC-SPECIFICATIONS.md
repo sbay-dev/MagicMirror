@@ -294,6 +294,206 @@ and connect the app to it so results are guaranteed.
 
 ---
 
+## SPEC-AUTH-024 — Translation source and high-quality dictionary UI (verbatim, Arabic)
+
+> نجح بالفعل لكن يجب ان يعرض مصدر الترجمه وايضا تنسيق مخرجات المعجم متداخله ولا تمثل معايير ui العالية الجوده وكما ان النص الذي يعيده المعجم عربي يجب الالتزام باتجاه النص وكذلك الاتجاه بحسب اعدادات المستخدم للغة الواجهه ولغة الترجمه
+
+**English:** It succeeded, but it must show the translation source. Dictionary output formatting is
+overlapping and does not meet high-quality UI standards. Since the dictionary returns Arabic text, it
+must respect text direction, and direction should follow the user's interface-language and
+translation-language settings.
+
+---
+
+## SPEC-AUTH-025 — W3C-like dictionary direction, accurate word hit-testing, and sentence review (verbatim, Arabic)
+
+> مازال معجم لا يتبع اتجاه النص وحجمه بمعايير W3C المعتمده وايضا التحديد لا يحدد الكلمة التي
+> ننقر عليها بل يحدد في مكان اخر وبصعوبه يمكن ان نقتنص الكلمه ولا توجد طريق لتحديد جمله كي
+> تراجع في المعجم!
+
+**English:** The dictionary still does not follow text direction and sizing according to accepted
+W3C-like standards. Selection does not select the word being clicked; it selects somewhere else and
+the word is hard to capture. There is also no way to select a sentence for dictionary review.
+
+---
+
+## SPEC-AUTH-026 — Adopt dictionary proposals into translation and model-learning rules (verbatim, Arabic)
+
+> اضف امكانية اضافة احد مقترحات المعجم الى الترجمه المعروضه وحفظها في قواعد النموذج كي يتعلم
+> تلقائا من الانتقاءات التي يقوم بها المستخدمين ويحسن قدراته في المستقبل واجعل الحفظ ضمن الية
+> يسهل على النموذج التطور من خلالها
+
+**English:** Add the ability to apply one of the dictionary proposals to the displayed translation
+and save it into model rules so the model learns automatically from users' selections and improves
+in the future. Make the saving mechanism easy for the model to evolve through.
+
+---
+
+## SPEC-AUTH-027 — Single selection marker and progressive translation stream (verbatim, Arabic)
+
+> اصبحت تتكرر مربعات التحديد لكل كلمه واحده مربعين او اكثر وايضا اقترح ان يتم عرض الترجمه
+> كستريم مستمر يسلم النص تدريجيا لتجنب الانتظار الطويل
+
+**English:** Selection boxes are now duplicated for each word, two or more boxes. Also, translation
+should be shown as a continuous stream that delivers text gradually to avoid long waiting.
+
+---
+
+## SPEC-AUTH-028 — Character-by-character stream and single selection marker (verbatim, Arabic)
+
+> انه التسليم مازال على دفعات وليس حرف تلو حرفومازال هناك مربعين تحديد لكل كلمه
+
+**English:** Delivery is still in batches and not character by character, and there are still two
+selection boxes for each word.
+
+---
+
+## SPEC-AUTH-029 — Link translated selection to original text (verbatim, Arabic)
+
+> لماذا لا يتم تحديد النص الاصلي عند تحديد الترجمه !
+
+**English:** Why is the original text not selected when the translation is selected?
+
+---
+
+## SPEC-AUTH-030 — Raise default captured image quality for OCR (verbatim, Arabic)
+
+> ارفع جوده الصورة الملتقطه الافتراضيه كي يتمكن OCR من التقاط النص الصحيح بدقه
+
+**English:** Raise the default captured-image quality so OCR can capture the correct text accurately.
+
+---
+
+## SPEC-AUTH-031 — Resize the mirror with wheel/pinch, and Ctrl+wheel in translation mode (verbatim, Arabic)
+
+> في وضع المرآة عند التمرير بعجلة الماوس او السحب باصبعين للخارج ارى ان يتم توسيع النافذه عبر زياده حجمها بشكل متدرج مع التمرير لتحسين تجربه المستخدم وتسهيل الامكانيات
+
+> يمكن اضافة تكبير وتصغير وضع الترجمه عند النقر على CTRL+ عجلة الماوس يتم تكبير النافذه ايضا في وضع الترجمه وفي اللمس يكون بنفس الطريقه للوضع السابق في المراه
+
+**English:** In mirror mode, mouse-wheel scrolling or two-finger outward drag should gradually enlarge
+the window to improve UX. In translation mode, `Ctrl + mouse wheel` should resize the window too, and
+touch pinch should work the same way as in mirror mode.
+
+---
+
+## SPEC-AUTH-032 — Smooth resize must not hide the mirror or pass input through (verbatim, Arabic)
+
+> يجب ان يكون التكبير والتصغير ناعم وما يحدث الان ان النافذه تختفي وتعود ما قد يمرر النافذه التي خلف المراه بشكل مزعج خصوصا عند التمرير بسرعه!
+
+**English:** Zooming/resizing must be smooth. The current behavior makes the window disappear and
+return, which can annoyingly pass input to the window behind the mirror, especially during fast
+scrolling.
+
+---
+
+## SPEC-AUTH-033 — Full-quality drop capture and visual transparency for zoom/frame resize (verbatim, Arabic)
+
+> نحن خفضنا جودة صورة الالتقاط عند الافلات وذلك قبل ان نعتمد مبدأ الشفافية عند السحب ونريد اعادة الجوده الكامله للالتقاط واضافه مبدأ شفافية السحب الى التكبير ايضا او تمديد الاطار
+
+**English:** We lowered captured-image quality on release before adopting drag transparency. Restore
+full capture quality on release, and add the drag-transparency principle to zooming or frame
+extension/resizing too.
+
+---
+
+## SPEC-AUTH-034 — Independent expert council and academic publication readiness (verbatim, Arabic)
+
+> استعي مجلس خبراء مستقلين لتحقيق في جودة العرض الدلالي والربط واساليب عرض الترجمه والالتزام
+> بالتنسيقات العلميه والمعيارية لدور النشر ثم اصدر النسخه الاحترافية التي يجمع عليها الكل بانها
+> جاهزة للنشر الاكاديمي وستعتمدها دور النشر كاداة ترجمه حقيقية
+
+**English:** Convene an independent expert council to investigate semantic display quality, linking,
+translation presentation methods, and adherence to scientific/publisher formatting standards, then
+issue the professional version once everyone agrees it is ready for academic publishing and publisher
+adoption as a real translation tool.
+
+---
+
+## SPEC-AUTH-035 — Text direction, line estimation, and knowledge-source trust (verbatim, Arabic)
+
+> اتجاه النص في الترجمه معطوب وتقدير الاسطر فقد قدرته وكذلك تمييز الاصل المعرفي الذي بنية عليه
+> الترجمه لم يعد موثوقا اضف لذلك ان تبرير الترجمه المختلطه غير مفند نحن نمتلك ذكاء يترجم ويفهم
+> السياق لم لا تبنى على اساسه القرارات المعرفية
+
+**English:** Translation text direction is broken, line estimation has lost reliability, the knowledge
+source on which the translation is built is no longer trustworthy, and mixed-translation justification
+is not refuted. Since we have intelligence that translates and understands context, knowledge decisions
+should be based on it.
+
+---
+
+## SPEC-AUTH-036 — Real text editor properties in the reader (verbatim, Arabic)
+
+> لا يمكن الوثوق بالمحتوى العلمي اذا لم يلتزم بالاصطفاف الصحيح كما في تااقطه السابقه اذ ان اي
+> مصطلح انكليزي يقلب السطر ويغر معناه ويجب التحقق دائما من جهة القارئ او نسخ النص واستخدام محرر
+> خارجي ! يجب ان تدمج خصائص محررات النصوص الحقيقية في القارئ
+
+**English:** Scientific content cannot be trusted if alignment is wrong; any English term can flip the
+line and change the meaning, forcing verification through the reader side or by copying into an
+external editor. The reader must integrate real text-editor properties.
+
+---
+
+## SPEC-AUTH-037 — Reader typography, hidden bidi controls, and detachable Kindle/Jarir-like reader (verbatim, Arabic)
+
+> نص الملمراه يرتجف والقارئ يظهر بخط ضخم يجب ان يتحكم به وكذلك لا يخفي رموز pid lri كما في اللقطه
+> يجب ان تحسن واجهة القارئ لتضاهي قارئ كيندل وقارئ جرير مثلا ويمكن فصله عن المراه
+
+**English:** Mirror text jitters, the reader appears with a huge font that must be controllable, and
+PID/LRI-like bidi symbols should not be visible. Improve the reader UI to resemble Kindle/Jarir-style
+readers and allow detaching it from the mirror.
+
+---
+
+## SPEC-AUTH-038 — Replace canvas translation blocks with a transparent editor (verbatim, Arabic)
+
+> ان تدفق نص القارئ اكثر استقرار واكثر تحكم بالتالي لم لا نفكر باستبدال الترجمه على الكانفاس بمحرر
+> بدون خلفيه يضمن لنا دقه في التحديد وادوات وخيارات للنص عند النقر على الزر الايمن بدل استخدام
+> الكتل التي اثبتت فشلها مرارا
+
+**English:** Reader text flow is more stable and controllable; consider replacing canvas translation
+with a transparent editor that guarantees selection precision and text tools/options on right-click
+instead of repeatedly failing blocks.
+
+---
+
+## SPEC-AUTH-039 — Detached reader controls and glossary/provenance linkage (verbatim, Arabic)
+
+> عدل ايضا التحكم في كثافة الخلفية ولونها واجعل النقر على زر القارئ يفصله مباشره لاننا بالفعل
+> لدينا قارئ رائع مع بعض التحسينات في الخط والتضيليل بان ينعكس على النص الاصلي والمعجم سنمتلك افضل
+> معيار لا محاله
+
+> اذ ان النافذه المفصوله يفترض ان تزود بازرار تحكم اكثر في الحجم واللون والتفاف النص
+
+> بقي ان تربط النص المظلل بخيار عرض المعجم وكذلك تحديد المقابل له في الترجمه الاصليه وعدم تطبيق
+> ترجمه مختلطه لان ذلك قد يفقد نموذج سرمد مسارات المعجم ويمكن اتباع مفهوم الاثبات المبني على شجرة
+> ميركل الذي يربط المصطلحات بالوثائق الاصليه ويمكن تعين مهمة الاثبات الى نموذج سرمد موازي يكون
+> مدقق مسؤول عن ربط القيم والمعجم الحرفي والمعجم بالجمله ويعطي مسارات يمكن تمثيلها على ocr الاصلي
+> بدقه
+
+**English:** Improve background density/color control and make the reader button detach directly. The
+detached window should include more controls for size, color, and wrapping. Link highlighted text to
+dictionary display, identify its counterpart in the original translation, and avoid mixed translation
+because it can break Sarmad glossary paths. Use a Merkle-tree proof concept that links terms to
+original documents, with Sarmad acting as an auditor for literal glossary, sentence glossary, and OCR
+representable paths.
+
+---
+
+## SPEC-AUTH-040 — Dictionary tabs, app-language direction, and explicit fallback prompt (verbatim, Arabic)
+
+> نافذة المعجم يفضل ان تقوم بتحسينها وتطبيق اتجاه السطر بحسب اللغه الاصلية للتطبيق وفصل التوثيقات
+> التقنية البحته في تبويب ضمن نافذة المعجم وذلك لتجنب الارباك وتحسين الية الترجمه التي تخلط بين
+> الترجمات بان يكون الحد الفاصل صارم وتوفير خيار اختياري عندما لا يتمكن سرمد من توفير الترجمه بان
+> تنبثق نافذه مثلا تفيد بان يتم الانتظار او استخدام البديل بشكل صريح في كل مره يتم تبديل المصدر
+
+**English:** Improve the dictionary window, apply line direction according to the app's original
+language, separate purely technical documentation into a tab inside the dictionary window, and make the
+translation source boundary strict. When Sarmad cannot provide a translation, show an optional prompt
+to wait/retry or explicitly use the alternative each time the source is changed.
+
+---
+
 ## Standing author conventions (from memory)
 - Document data-extraction/processing functions thoroughly (parameters + protocol) so they can be
   reused to reproduce the same output quality.

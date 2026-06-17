@@ -46,7 +46,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseSqlite(connectionString);
-    options.UseMatryoshka(EntityCryptSecurityPolicy.GetDatabaseMasterKey("{{name}}-app-db"));
+    options.UseMatryoshka(EntityCryptSecurityPolicy.GetDatabaseMasterKey("MagicMirror-app-db"));
 });
 
 builder.Services.AddLogging(lb => lb.ClearProviders().AddNLog());

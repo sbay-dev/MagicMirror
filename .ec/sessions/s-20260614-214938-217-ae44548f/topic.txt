@@ -1,0 +1,1 @@
+Magic Mirror v1.0.5 readiness for academic/publisher-grade release after semantic display, source-linking, OCR/capture, MT fallback, and luxury UX hardening.

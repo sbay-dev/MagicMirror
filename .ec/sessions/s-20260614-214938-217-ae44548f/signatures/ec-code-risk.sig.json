@@ -1,0 +1,10 @@
+{
+  "slug": "ec-code-risk",
+  "path": "theses\\phase1\\ec-code-risk.md",
+  "model": "ec-code-risk",
+  "prompt_sha256": "1984f97517ef7c81ff6bcbcc9f168a24947c5b0f6756e44d6cc6837a7b4e8c33",
+  "body_bytes": 1976,
+  "body_sha256": "3af8b87662384770daca427f68ae11a8f32bdb2508be6b6692f4e37a4c672146",
+  "signed_at": "2026-06-14T22:20:37.5385018Z",
+  "generated_by": "experts-council-app"
+}

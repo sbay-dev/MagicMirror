@@ -27,8 +27,11 @@ Responsibilities:
 - UI Automation text extraction.
 - Tesseract and Windows.Media.Ocr OCR.
 - Font/style inference.
-- Translation orchestration and fallback.
+- Translation orchestration with Sarmad-first provenance and explicit MT fallback
+  gating.
 - Document-like translated rendering with Arabic RTL/LTR handling.
+- Native transparent editor and detachable reader surfaces for stable selection,
+  copy, wrapping, and dictionary context menus.
 
 ## Runtime pipeline
 
@@ -38,10 +41,11 @@ Overlay region
   -> OCR fallback
   -> row and paragraph merge
   -> font role/style inference
-  -> AI translation / MT fallback
+  -> Sarmad AI translation
+  -> explicit whole-capture MT fallback only when the user confirms it
   -> document layout normalization
-  -> translated overlay rendering
-  -> rendered hit regions for dictionary selection
+  -> native transparent editor / detached reader
+  -> rendered hit regions and OCR-block provenance for dictionary selection
 ```
 
 ## Selection and dictionary design
@@ -52,3 +56,6 @@ between raw OCR boxes and the final rendered text after scroll, wrapping,
 target-direction alignment, and reader-page layout. Source OCR boxes are also
 registered as fallback hit regions, so clicking visible original text remains
 usable when translation text has been normalized into the target-language column.
+Reader/editor selections are mapped back to their owning `TranslatedBlock`, and
+the dictionary proof tab separates technical OCR/Merkle provenance from the
+linguistic answer to avoid mixing audit details with the glossary result.

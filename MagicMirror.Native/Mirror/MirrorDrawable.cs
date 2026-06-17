@@ -15,7 +15,25 @@ namespace MagicMirror.Native.Mirror;
 /// </summary>
 public sealed class MirrorDrawable : IDrawable
 {
-    public sealed record TextHitRegion(TranslatedBlock Block, string Text, RectF Bounds, bool IsWord, bool IsSource = false);
+    public enum TextHitScope
+    {
+        Block,
+        Line,
+        Word,
+        Source,
+    }
+
+    public sealed record TextHitRegion(
+        TranslatedBlock Block,
+        string Text,
+        RectF Bounds,
+        bool IsWord,
+        bool IsSource = false,
+        TextHitScope Scope = TextHitScope.Block,
+        int LineIndex = -1)
+    {
+        public bool IsLine => Scope == TextHitScope.Line;
+    }
 
     public IImage? Background { get; set; }
     public int CaptureWidth { get; set; }
@@ -68,6 +86,12 @@ public sealed class MirrorDrawable : IDrawable
 
     /// <summary>Canvas-space rectangle of the exact rendered/source hit that the user selected.</summary>
     public RectF? SelectedTextBounds { get; set; }
+
+    /// <summary>True when <see cref="SelectedTextBounds"/> came from the original OCR/source geometry.</summary>
+    public bool SelectedTextIsSource { get; set; }
+
+    /// <summary>Canvas-space rectangle of the original OCR text corresponding to a translated selection.</summary>
+    public RectF? SelectedSourceTextBounds { get; set; }
 
     /// <summary>Actual rendered word/line rectangles in canvas coordinates, rebuilt every frame for hit testing.</summary>
     public IReadOnlyList<TextHitRegion> HitRegions => _hitRegions;
@@ -151,6 +175,8 @@ public sealed class MirrorDrawable : IDrawable
 
         if (ShowTranslations && Blocks.Count > 0 && CaptureWidth > 0 && CaptureHeight > 0)
             DrawTranslations(canvas, dirtyRect);
+        else
+            DrawDetachedSelectionHighlight(canvas);
 
         if (Processing) DrawScanBeam(canvas, dirtyRect);
         if (ShowHud) DrawHudFrame(canvas, dirtyRect);
@@ -230,6 +256,7 @@ public sealed class MirrorDrawable : IDrawable
         float fontSize = ResolveDocumentFontSize(block, lineBoxH, windowScale, scale);
 
         bool hasLtrRun = ContainsLtrRun(block.TranslatedText);
+        bool blockRightToLeft = ResolveTextDirection(block.TranslatedText, RightToLeft);
         float pad = Math.Clamp(fontSize * 0.18f, 3f, 8f);
 
         float maxW = MathF.Max(1, dirtyRect.Width - 12f);
@@ -259,17 +286,17 @@ public sealed class MirrorDrawable : IDrawable
             if (TranslationBackgroundOpacity >= 0.995)
                 widthFloor = contentWidth;
             drawW = Math.Clamp(MathF.Max(drawW, widthFloor), MathF.Min(minW, contentWidth), contentWidth);
-            drawX = RightToLeft ? contentRight - drawW : contentLeft;
+            drawX = blockRightToLeft ? contentRight - drawW : contentLeft;
         }
         else
         {
-            drawX = RightToLeft ? (bx + bw) - drawW : bx;
+            drawX = blockRightToLeft ? (bx + bw) - drawW : bx;
         }
 
         if (drawX < dirtyRect.X) drawX = dirtyRect.X;
         if (drawX + drawW > dirtyRect.Right) drawX = dirtyRect.Right - drawW;
 
-        var textLines = WrapTextLines(block.TranslatedText, MathF.Max(1, drawW - pad * 2), fontSize, RightToLeft);
+        var textLines = WrapTextLines(block.TranslatedText, MathF.Max(1, drawW - pad * 2), fontSize, blockRightToLeft);
         float lineHeight = MathF.Max(fontSize * _layoutProfile.LineSpacing, fontSize * 1.16f);
         float drawH = MathF.Max(bh, lineHeight * textLines.Count + pad);
         float preferredY = textLines.Count == 1 ? by + MathF.Max(0, (bh - drawH) / 2f) : by;
@@ -281,8 +308,10 @@ public sealed class MirrorDrawable : IDrawable
             MirrorLog.Info($"  draw '{(block.TranslatedText.Length>20?block.TranslatedText.Substring(0,20):block.TranslatedText)}' box[{bx:0},{by:0},{bw:0}x{bh:0}] draw[{drawX:0},{drawY:0},{drawW:0}x{drawH:0}] fs={fontSize:0} canvas={dirtyRect.Width:0}x{dirtyRect.Height:0} sx={sx:0.00}");
 
         var sourceCore = new RectF(bx - 3, by - 2, bw + 6, bh + 4);
-        RegisterSourceHitRegion(block, sourceCore);
+        RegisterSourceHitRegions(block, sourceCore, lineBoxH, dirtyRect, sx, sy, scroll);
         DrawSourceTextVeil(canvas, sourceCore, block.Font.Role);
+        if (ReferenceEquals(block, SelectedBlock))
+            DrawSelectedSourceHighlight(canvas, block);
 
         var family = FontMatcher.ResolveOverlayFamily(block.Font, RightToLeft, hasLtrRun);
         var mainFont = new Font(
@@ -300,58 +329,120 @@ public sealed class MirrorDrawable : IDrawable
         float textHeight = textLines.Count * lineHeight;
         float lineY = drawY + MathF.Max(pad * 0.35f, (drawH - textHeight) / 2f);
         var textCore = new RectF(drawX, drawY, drawW, drawH);
-        _hitRegions.Add(new TextHitRegion(block, block.TranslatedText, textCore, IsWord: false));
+        _hitRegions.Add(new TextHitRegion(block, block.TranslatedText, textCore, IsWord: false, Scope: TextHitScope.Block));
         if (ReferenceEquals(block, SelectedBlock))
-        {
-            DrawSelectionHighlight(canvas, sourceCore, textCore);
             DrawSelectedHitHighlight(canvas, block);
-        }
 
-        foreach (var line in textLines)
+        for (var lineIndex = 0; lineIndex < textLines.Count; lineIndex++)
         {
-            var lineHits = RegisterLineHitRegions(block, line, drawX + pad, lineY, MathF.Max(1, drawW - pad * 2), lineHeight, fontSize, RightToLeft);
-            DrawSelectedTermHighlight(canvas, block, lineHits);
+            var line = textLines[lineIndex];
+            var lineRightToLeft = ResolveTextDirection(line, blockRightToLeft);
+            RegisterLineHitRegions(block, line, drawX + pad, lineY, MathF.Max(1, drawW - pad * 2), lineHeight, fontSize, lineRightToLeft, lineIndex);
             DrawOutputHalo(canvas, line, drawX + pad, lineY, MathF.Max(1, drawW - pad * 2), lineHeight,
-                fontSize, mainFont);
+                fontSize, mainFont, lineRightToLeft);
             DrawOutputLine(canvas, line, drawX + pad, lineY, MathF.Max(1, drawW - pad * 2), lineHeight,
-                fontSize, mainFont, latinFont);
+                fontSize, mainFont, latinFont, lineRightToLeft);
             lineY += lineHeight;
         }
     }
 
-    private void RegisterSourceHitRegion(TranslatedBlock block, RectF sourceCore)
+    private void RegisterSourceHitRegions(
+        TranslatedBlock block,
+        RectF sourceCore,
+        float sourceLineHeight,
+        RectF dirtyRect,
+        float sx,
+        float sy,
+        float scroll)
     {
         var text = string.IsNullOrWhiteSpace(block.OriginalText) ? block.TranslatedText : block.OriginalText;
         if (string.IsNullOrWhiteSpace(text))
             return;
 
-        _hitRegions.Add(new TextHitRegion(block, text.Trim(), sourceCore, IsWord: false, IsSource: true));
+        _hitRegions.Add(new TextHitRegion(block, text.Trim(), sourceCore, IsWord: false, IsSource: true, Scope: TextHitScope.Source));
+
+        var measuredLines = block.SourceLines
+            .Where(line => !string.IsNullOrWhiteSpace(line.Text) && line.Width > 0 && line.Height > 0)
+            .OrderBy(line => line.Y)
+            .ThenBy(line => line.X)
+            .ToList();
+        if (measuredLines.Count > 0)
+        {
+            for (var i = 0; i < measuredLines.Count; i++)
+            {
+                var line = measuredLines[i];
+                var lineRect = new RectF(
+                    dirtyRect.X + line.X * sx,
+                    dirtyRect.Y + line.Y * sy - scroll,
+                    MathF.Max(1, line.Width * sx),
+                    MathF.Max(1, line.Height * sy));
+                _hitRegions.Add(new TextHitRegion(block, line.Text.Trim(), lineRect, IsWord: false, IsSource: true, Scope: TextHitScope.Line, LineIndex: i));
+            }
+
+            return;
+        }
+
+        var lineCount = EstimateSourceLineCount(block);
+        var sourceLines = BuildSourceLineTexts(text, lineCount);
+        var inner = new RectF(sourceCore.X + 3, sourceCore.Y + 2, MathF.Max(1, sourceCore.Width - 6), MathF.Max(1, sourceCore.Height - 4));
+        var maxLineHeight = MathF.Max(1f, inner.Height / Math.Max(1, sourceLines.Count));
+        var minLineHeight = MathF.Min(6f, maxLineHeight);
+        var fittedLineHeight = Math.Clamp(
+            sourceLineHeight > 0 ? sourceLineHeight : inner.Height / Math.Max(1, sourceLines.Count),
+            minLineHeight,
+            maxLineHeight);
+        var sourceRtl = ContainsRtlLetter(text);
+        var sourceFontSize = MathF.Max(8f, fittedLineHeight * 0.56f);
+
+        for (var i = 0; i < sourceLines.Count; i++)
+        {
+            var lineText = sourceLines[i].Trim();
+            if (lineText.Length == 0)
+                continue;
+
+            var lineWidth = MathF.Min(inner.Width, MathF.Max(sourceFontSize, EstimateTextAdvance(lineText, sourceFontSize) + sourceFontSize * 0.35f));
+            var lineLeft = sourceRtl ? inner.Right - lineWidth : inner.Left;
+            var lineTop = inner.Y + i * fittedLineHeight;
+            if (lineTop >= inner.Bottom)
+                break;
+
+            var lineRect = new RectF(lineLeft, lineTop, lineWidth, MathF.Min(fittedLineHeight, inner.Bottom - lineTop));
+            _hitRegions.Add(new TextHitRegion(block, lineText, lineRect, IsWord: false, IsSource: true, Scope: TextHitScope.Line, LineIndex: i));
+        }
     }
 
-    private List<TextHitRegion> RegisterLineHitRegions(TranslatedBlock block, string line, float x, float y, float width, float height, float fontSize, bool rightToLeft)
+    private List<TextHitRegion> RegisterLineHitRegions(TranslatedBlock block, string line, float x, float y, float width, float height, float fontSize, bool rightToLeft, int lineIndex)
     {
         var regions = new List<TextHitRegion>();
         if (string.IsNullOrWhiteSpace(line))
             return regions;
 
-        var lineWidth = MathF.Min(width, EstimateSingleLineWidth(line, fontSize));
+        var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var spaceAdvance = EstimateTextAdvance(" ", fontSize);
+        var tokenAdvances = tokens.Select(token => MathF.Max(1f, EstimateTextAdvance(token, fontSize))).ToArray();
+        var naturalLineAdvance = tokenAdvances.Sum() + MathF.Max(0, tokens.Length - 1) * spaceAdvance;
+        var lineWidth = MathF.Min(width, MathF.Max(fontSize, naturalLineAdvance));
         var lineLeft = rightToLeft ? x + width - lineWidth : x;
         var lineRect = new RectF(lineLeft, y, lineWidth, height);
-        AddHitRegion(regions, new TextHitRegion(block, line.Trim(), lineRect, IsWord: false));
+        AddHitRegion(regions, new TextHitRegion(block, line.Trim(), lineRect, IsWord: false, Scope: TextHitScope.Line, LineIndex: lineIndex));
 
-        var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         if (tokens.Length == 0)
             return regions;
 
-        var space = MathF.Max(fontSize * 0.24f, fontSize * 0.35f);
+        var fit = naturalLineAdvance > 0 ? lineWidth / naturalLineAdvance : 1f;
+        var space = spaceAdvance * fit;
+        var markerPad = Math.Clamp(fontSize * 0.10f, 1.5f, 3.5f);
         if (rightToLeft)
         {
             var cursor = lineRect.Right;
-            foreach (var token in tokens)
+            for (var i = 0; i < tokens.Length; i++)
             {
-                var tokenWidth = MathF.Min(lineWidth, MathF.Max(fontSize * 0.8f, EstimateSingleLineWidth(token, fontSize)));
-                var tokenRect = new RectF(cursor - tokenWidth, y, tokenWidth, height);
-                AddHitRegion(regions, new TextHitRegion(block, CleanHitText(token), tokenRect, IsWord: true));
+                var token = tokens[i];
+                var tokenWidth = MathF.Max(1f, tokenAdvances[i] * fit);
+                var tokenRect = ClampToLine(new RectF(cursor - tokenWidth - markerPad, y, tokenWidth + markerPad * 2, height), lineRect);
+                var clean = CleanHitText(token);
+                if (clean.Length > 0)
+                    AddHitRegion(regions, new TextHitRegion(block, clean, tokenRect, IsWord: true, Scope: TextHitScope.Word, LineIndex: lineIndex));
                 cursor -= tokenWidth + space;
                 if (cursor < lineRect.Left) break;
             }
@@ -359,11 +450,14 @@ public sealed class MirrorDrawable : IDrawable
         else
         {
             var cursor = lineRect.Left;
-            foreach (var token in tokens)
+            for (var i = 0; i < tokens.Length; i++)
             {
-                var tokenWidth = MathF.Min(lineWidth, MathF.Max(fontSize * 0.8f, EstimateSingleLineWidth(token, fontSize)));
-                var tokenRect = new RectF(cursor, y, tokenWidth, height);
-                AddHitRegion(regions, new TextHitRegion(block, CleanHitText(token), tokenRect, IsWord: true));
+                var token = tokens[i];
+                var tokenWidth = MathF.Max(1f, tokenAdvances[i] * fit);
+                var tokenRect = ClampToLine(new RectF(cursor - markerPad, y, tokenWidth + markerPad * 2, height), lineRect);
+                var clean = CleanHitText(token);
+                if (clean.Length > 0)
+                    AddHitRegion(regions, new TextHitRegion(block, clean, tokenRect, IsWord: true, Scope: TextHitScope.Word, LineIndex: lineIndex));
                 cursor += tokenWidth + space;
                 if (cursor > lineRect.Right) break;
             }
@@ -378,26 +472,52 @@ public sealed class MirrorDrawable : IDrawable
         lineRegions.Add(hit);
     }
 
-    private void DrawSelectedTermHighlight(ICanvas canvas, TranslatedBlock block, IReadOnlyList<TextHitRegion> lineHits)
+    private static int EstimateSourceLineCount(TranslatedBlock block)
     {
-        if (!ReferenceEquals(block, SelectedBlock) || string.IsNullOrWhiteSpace(SelectedText))
-            return;
+        if (block.LineHeightHint <= 0 || block.Height <= 0)
+            return 1;
 
-        var selected = CleanHitText(SelectedText);
-        if (selected.Length == 0)
-            return;
+        return Math.Clamp((int)Math.Round(block.Height / (double)block.LineHeightHint), 1, 32);
+    }
 
-        foreach (var hit in lineHits)
+    private static IReadOnlyList<string> BuildSourceLineTexts(string text, int lineCount)
+    {
+        var explicitLines = (text ?? string.Empty)
+            .Replace('\r', '\n')
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(line => line.Length > 0)
+            .ToList();
+        if (explicitLines.Count > 1)
+            return explicitLines;
+
+        var normalized = Regex.Replace((text ?? string.Empty).Trim(), @"\s+", " ");
+        if (normalized.Length == 0 || lineCount <= 1)
+            return new[] { normalized };
+
+        var words = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (words.Length == 0)
+            return new[] { normalized };
+
+        var lines = new List<string>(lineCount);
+        var targetChars = Math.Max(8, (int)Math.Ceiling(normalized.Length / (double)lineCount));
+        var current = "";
+        foreach (var word in words)
         {
-            if (!hit.IsWord || !string.Equals(CleanHitText(hit.Text), selected, StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            canvas.FillColor = Color.FromRgba(255, 214, 10, 92);
-            canvas.FillRoundedRectangle(hit.Bounds, 4);
-            canvas.StrokeSize = 1.2f;
-            canvas.StrokeColor = Color.FromRgba(255, 214, 10, 230);
-            canvas.DrawRoundedRectangle(hit.Bounds, 4);
+            var candidate = current.Length == 0 ? word : current + " " + word;
+            if (current.Length > 0 && candidate.Length > targetChars && lines.Count < lineCount - 1)
+            {
+                lines.Add(current);
+                current = word;
+            }
+            else
+            {
+                current = candidate;
+            }
         }
+
+        if (current.Length > 0)
+            lines.Add(current);
+        return lines.Count == 0 ? new[] { normalized } : lines;
     }
 
     private void DrawSelectedHitHighlight(ICanvas canvas, TranslatedBlock block)
@@ -408,31 +528,79 @@ public sealed class MirrorDrawable : IDrawable
             direct.Height <= 0)
             return;
 
-        canvas.FillColor = Color.FromRgba(255, 214, 10, 76);
-        canvas.FillRoundedRectangle(direct, 4);
-        canvas.StrokeSize = 1.2f;
-        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 235);
-        canvas.DrawRoundedRectangle(direct, 4);
+        if (SelectedTextIsSource)
+        {
+            canvas.StrokeSize = 2.0f;
+            canvas.StrokeColor = Color.FromRgba(255, 214, 10, 210);
+            canvas.DrawRoundedRectangle(direct, 3);
+            return;
+        }
+
+        canvas.FillColor = Color.FromRgba(255, 214, 10, 78);
+        canvas.FillRoundedRectangle(direct, 3);
+    }
+
+    private void DrawSelectedSourceHighlight(ICanvas canvas, TranslatedBlock block)
+    {
+        if (!ReferenceEquals(block, SelectedBlock) ||
+            SelectedSourceTextBounds is not RectF source ||
+            source.Width <= 0 ||
+            source.Height <= 0)
+            return;
+
+        canvas.StrokeSize = 2.0f;
+        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 210);
+        canvas.DrawRoundedRectangle(source, 3);
+    }
+
+    private void DrawDetachedSelectionHighlight(ICanvas canvas)
+    {
+        if (SelectedSourceTextBounds is RectF source && source.Width > 0 && source.Height > 0)
+        {
+            canvas.StrokeSize = 2.0f;
+            canvas.StrokeColor = Color.FromRgba(255, 214, 10, 220);
+            canvas.DrawRoundedRectangle(source, 3);
+        }
+
+        if (SelectedTextBounds is RectF direct && direct.Width > 0 && direct.Height > 0)
+        {
+            canvas.FillColor = Color.FromRgba(255, 214, 10, 70);
+            canvas.FillRoundedRectangle(direct, 3);
+        }
     }
 
     private static string CleanHitText(string token)
         => token.Trim(' ', '.', ',', '،', ':', ';', '؛', '(', ')', '[', ']', '"', '\'');
 
+    private static RectF ClampToLine(RectF rect, RectF line)
+    {
+        var left = Math.Clamp(rect.Left, line.Left, line.Right);
+        var right = Math.Clamp(rect.Right, line.Left, line.Right);
+        if (right - left < 2f)
+        {
+            var center = Math.Clamp(rect.Left + rect.Width / 2f, line.Left, line.Right);
+            left = Math.Max(line.Left, center - 1f);
+            right = Math.Min(line.Right, center + 1f);
+        }
+
+        return new RectF(left, rect.Y, MathF.Max(1f, right - left), rect.Height);
+    }
+
     private void DrawOutputLine(ICanvas canvas, string line, float x, float y, float width, float height,
-        float fontSize, Font mainFont, Font latinFont)
+        float fontSize, Font mainFont, Font latinFont, bool rightToLeft)
     {
         canvas.Font = mainFont;
         canvas.FontSize = fontSize;
         canvas.DrawString(
-            PrepareDisplayText(line, RightToLeft),
+            PrepareDisplayText(line, rightToLeft),
             x, y, width, height,
-            RightToLeft ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+            rightToLeft ? HorizontalAlignment.Right : HorizontalAlignment.Left,
             VerticalAlignment.Center,
             TextFlow.ClipBounds);
     }
 
     private void DrawOutputHalo(ICanvas canvas, string line, float x, float y, float width, float height,
-        float fontSize, Font mainFont)
+        float fontSize, Font mainFont, bool rightToLeft)
     {
         canvas.Font = mainFont;
         canvas.FontSize = fontSize;
@@ -441,8 +609,8 @@ public sealed class MirrorDrawable : IDrawable
             return;
 
         canvas.FontColor = TranslationBackgroundColor.WithAlpha(haloOpacity * 0.58f);
-        var display = PrepareDisplayText(line, RightToLeft);
-        var alignment = RightToLeft ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+        var display = PrepareDisplayText(line, rightToLeft);
+        var alignment = rightToLeft ? HorizontalAlignment.Right : HorizontalAlignment.Left;
         foreach (var (dx, dy) in TextHaloOffsets)
             canvas.DrawString(display, x + dx, y + dy, width, height, alignment, VerticalAlignment.Center, TextFlow.ClipBounds);
         canvas.FontColor = TranslationTextColor.WithAlpha(0.98f);
@@ -452,13 +620,23 @@ public sealed class MirrorDrawable : IDrawable
     {
         if (string.IsNullOrWhiteSpace(text)) return text;
 
-        // Unicode bidi isolates keep LTR scientific tokens (CNS/LCNS/QKV/etc.) in their own
-        // left-to-right run while the surrounding Arabic line remains one RTL paragraph.
-        var isolated = LtrRunRegex.Replace(text, m => "\u202A" + m.Value + "\u202C");
-        return rightToLeft ? "\u202B" + isolated + "\u202C" : isolated;
+        return Regex.Replace(text, "[\u200E\u200F\u202A-\u202E\u2066-\u2069]", "");
     }
 
     private static bool ContainsLtrRun(string text) => LtrRunRegex.IsMatch(text ?? string.Empty);
+
+    private static bool ResolveTextDirection(string text, bool fallbackRightToLeft)
+    {
+        foreach (var ch in text ?? string.Empty)
+        {
+            if (ch is >= '\u0590' and <= '\u08FF')
+                return true;
+            if ((ch is >= 'A' and <= 'Z') || (ch is >= 'a' and <= 'z'))
+                return false;
+        }
+
+        return fallbackRightToLeft;
+    }
 
     private static IReadOnlyList<(string Text, bool IsLatin)> SplitDirectionRuns(string text)
     {
@@ -595,16 +773,6 @@ public sealed class MirrorDrawable : IDrawable
         canvas.FillRoundedRectangle(sourceCore, 2);
     }
 
-    private void DrawSelectionHighlight(ICanvas canvas, RectF sourceCore, RectF textCore)
-    {
-        canvas.StrokeSize = 2.0f;
-        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 210);
-        canvas.DrawRoundedRectangle(sourceCore, 3);
-        canvas.StrokeSize = 1.5f;
-        canvas.StrokeColor = Color.FromRgba(255, 214, 10, 185);
-        canvas.DrawRoundedRectangle(textCore, 4);
-    }
-
     private static IReadOnlyList<string> WrapTextLines(string text, float maxWidth, float fontSize, bool rightToLeft)
     {
         var normalized = Regex.Replace((text ?? string.Empty).Trim(), @"\s+", " ");
@@ -666,8 +834,11 @@ public sealed class MirrorDrawable : IDrawable
         => !string.IsNullOrEmpty(text) && text.Any(ch => ch is >= '\u0590' and <= '\u08FF');
 
     private static float EstimateSingleLineWidth(string text, float fontSize)
+        => MathF.Max(fontSize, EstimateTextAdvance(text, fontSize));
+
+    private static float EstimateTextAdvance(string text, float fontSize)
     {
-        if (string.IsNullOrWhiteSpace(text)) return fontSize;
+        if (string.IsNullOrWhiteSpace(text)) return 0f;
 
         float units = 0;
         foreach (char ch in text)
@@ -677,7 +848,7 @@ public sealed class MirrorDrawable : IDrawable
             else if (ch >= 0x0600 && ch <= 0x06FF) units += 0.68f;
             else units += 0.62f;
         }
-        return MathF.Max(fontSize, units * fontSize);
+        return MathF.Max(0f, units * fontSize);
     }
 
     private static float EstimateInlineRunWidth(string text, float fontSize, bool latin)

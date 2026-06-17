@@ -7,9 +7,27 @@
         <GraphicsView x:Name="Canvas" BackgroundColor="Transparent">
             <GraphicsView.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="OnDragSurface" />
+                <PinchGestureRecognizer PinchUpdated="OnPinchSurface" />
                 <TapGestureRecognizer NumberOfTapsRequired="2" Tapped="OnDoubleTapSurface" />
             </GraphicsView.GestureRecognizers>
         </GraphicsView>
+
+        <Editor x:Name="NativeOverlayEditor"
+                IsVisible="False"
+                IsReadOnly="True"
+                AutoSize="Disabled"
+                FontFamily="Segoe UI"
+                FontSize="17"
+                TextColor="#0D0F14"
+                BackgroundColor="Transparent"
+                FlowDirection="RightToLeft"
+                HorizontalTextAlignment="Start"
+                VerticalTextAlignment="Start"
+                Margin="12,112,12,12" />
+
+        <GraphicsView x:Name="SelectionOverlay"
+                      BackgroundColor="Transparent"
+                      InputTransparent="True" />
 
         <!-- Holographic glass toolbar (draggable) -->
         <Border x:Name="Toolbar" VerticalOptions="Start" HeightRequest="48"
@@ -35,30 +53,40 @@
             <Border.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="OnDragToolbar" />
             </Border.GestureRecognizers>
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
                 <Label Grid.Column="0" Text="🪞" FontSize="17" VerticalOptions="Center" Margin="2,0,2,0" />
 
                 <Label Grid.Column="1" x:Name="LblStatus" Text="جاهز" FontSize="11"
                        TextColor="#9FE9FF" VerticalOptions="Center" LineBreakMode="TailTruncation" />
 
-                <Button Grid.Column="2" x:Name="BtnSmaller" Text="A−" Clicked="OnSmaller"
+                <Border Grid.Column="2" x:Name="SourceBadge" StrokeThickness="1" Padding="7,0"
+                        BackgroundColor="#14385A" Stroke="#334DD0E1" HeightRequest="28"
+                        VerticalOptions="Center" IsVisible="False">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8" />
+                    </Border.StrokeShape>
+                    <Label x:Name="LblTranslationSource" Text="المصدر: —" FontSize="10"
+                           TextColor="#BFF7FF" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                </Border>
+
+                <Button Grid.Column="3" x:Name="BtnSmaller" Text="A−" Clicked="OnSmaller"
                         FontSize="13" Padding="8,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
-                <Button Grid.Column="3" x:Name="BtnBigger" Text="A+" Clicked="OnBigger"
+                <Button Grid.Column="4" x:Name="BtnBigger" Text="A+" Clicked="OnBigger"
                         FontSize="13" Padding="8,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
-                <Button Grid.Column="4" x:Name="BtnMode" Text="مقروء" Clicked="OnCycleMode"
+                <Button Grid.Column="5" x:Name="BtnMode" Text="مقروء" Clicked="OnCycleMode"
                         FontSize="11" Padding="6,0" HeightRequest="34" CornerRadius="9"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
 
-                <Button Grid.Column="5" x:Name="BtnCopyOriginal" Text="⧉ أصل" Clicked="OnCopyOriginal"
+                <Button Grid.Column="6" x:Name="BtnCopyOriginal" Text="⧉ أصل" Clicked="OnCopyOriginal"
                         FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="9" IsEnabled="False"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
-                <Button Grid.Column="6" x:Name="BtnCopyTranslated" Text="⧉ ترجمة" Clicked="OnCopyTranslated"
+                <Button Grid.Column="7" x:Name="BtnCopyTranslated" Text="⧉ ترجمة" Clicked="OnCopyTranslated"
                         FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="9" IsEnabled="False"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
 
-                <Button Grid.Column="7" x:Name="BtnTranslate" Text="⟐ ترجم" Clicked="OnTranslate"
+                <Button Grid.Column="8" x:Name="BtnTranslate" Text="⟐ ترجم" Clicked="OnTranslate"
                         FontSize="13" FontAttributes="Bold" Padding="12,0" HeightRequest="34" CornerRadius="10"
                         TextColor="White">
                     <Button.Background>
@@ -73,17 +101,17 @@
                     </Button.Shadow>
                 </Button>
 
-                <Button Grid.Column="8" x:Name="BtnScrollUp" Text="↑" Clicked="OnScrollUp"
+                <Button Grid.Column="9" x:Name="BtnScrollUp" Text="↑" Clicked="OnScrollUp"
                         FontSize="13" Padding="4,0" WidthRequest="34" HeightRequest="34" CornerRadius="9" IsEnabled="False"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
-                <Button Grid.Column="9" x:Name="BtnScrollDown" Text="↓" Clicked="OnScrollDown"
+                <Button Grid.Column="10" x:Name="BtnScrollDown" Text="↓" Clicked="OnScrollDown"
                         FontSize="13" Padding="4,0" WidthRequest="34" HeightRequest="34" CornerRadius="9" IsEnabled="False"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
 
-                <Button Grid.Column="10" x:Name="BtnLive" Text="👁" Clicked="OnToggleLive"
+                <Button Grid.Column="11" x:Name="BtnLive" Text="👁" Clicked="OnToggleLive"
                         FontSize="13" Padding="6,0" WidthRequest="40" HeightRequest="34" CornerRadius="9"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
-                <Button Grid.Column="11" x:Name="BtnClose" Text="✕" Clicked="OnClose"
+                <Button Grid.Column="12" x:Name="BtnClose" Text="✕" Clicked="OnClose"
                         FontSize="13" Padding="6,0" WidthRequest="38" HeightRequest="34" CornerRadius="9"
                         BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
             </Grid>
@@ -100,7 +128,7 @@
             <Border.Background>
                 <SolidColorBrush Color="#B30A1326" />
             </Border.Background>
-            <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="4">
                 <Button Grid.Column="0" x:Name="BtnBgColor" Text="▣ خلفية" Clicked="OnCycleBackgroundColor"
                         FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#3322E5FF" BorderWidth="1" />
@@ -110,11 +138,68 @@
                 <Button Grid.Column="2" x:Name="BtnTextColor" Text="حبر" Clicked="OnCycleTextColor"
                         FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
                         BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+                <Button Grid.Column="3" x:Name="BtnDictionaryFromSelection" Text="معجم المحدد" Clicked="OnDictionaryFromSelection"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+                <Button Grid.Column="4" x:Name="BtnReader" Text="فصل القارئ" Clicked="OnToggleReaderPanel"
+                        FontSize="11" Padding="7,0" HeightRequest="34" CornerRadius="8"
+                        BackgroundColor="#1A2A44" TextColor="#CFEFFF" BorderColor="#33A855F7" BorderWidth="1" />
+            </Grid>
+        </Border>
+
+        <Border x:Name="ReaderPanel" IsVisible="False" VerticalOptions="Fill" HorizontalOptions="End"
+                WidthRequest="640" StrokeThickness="1" Padding="14" Margin="8,112,8,8">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="14" />
+            </Border.StrokeShape>
+            <Border.Stroke>
+                <SolidColorBrush Color="#5522E5FF" />
+            </Border.Stroke>
+            <Border.Background><SolidColorBrush Color="#FAF3E8D8" /></Border.Background>
+            <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="8">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="6">
+                    <Label Grid.Column="0" Text="قارئ علمي"
+                           FontSize="15" FontAttributes="Bold" TextColor="#1D2430"
+                           VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                    <Button Grid.Column="1" Text="A−" Clicked="OnReaderSmaller"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#EFE4D4" TextColor="#1D2430" BorderColor="#CCBFAE" BorderWidth="1" />
+                    <Button Grid.Column="2" Text="A+" Clicked="OnReaderBigger"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#EFE4D4" TextColor="#1D2430" BorderColor="#CCBFAE" BorderWidth="1" />
+                    <Button Grid.Column="3" Text="⧉" Clicked="OnCopyTranslated"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#EFE4D4" TextColor="#1D2430" BorderColor="#CCBFAE" BorderWidth="1" />
+                    <Button Grid.Column="4" Text="فصل" Clicked="OnDetachReader"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#EFE4D4" TextColor="#1D2430" BorderColor="#CCBFAE" BorderWidth="1" />
+                    <Button Grid.Column="5" Text="×" Clicked="OnCloseReaderPanel"
+                            FontSize="13" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
+                </Grid>
+
+                <Label Grid.Row="1" x:Name="ReaderSourceDetails" Text="الأصل المعرفي: —"
+                       FontSize="11" TextColor="#5D7288" LineBreakMode="WordWrap" />
+
+                <Editor Grid.Row="2" x:Name="ReaderEditor"
+                        IsReadOnly="True"
+                        AutoSize="Disabled"
+                        FontFamily="Segoe UI"
+                        FontSize="17"
+                        TextColor="#171717"
+                        BackgroundColor="#FFFDF8"
+                        FlowDirection="RightToLeft"
+                        HorizontalTextAlignment="Start"
+                        VerticalTextAlignment="Start" />
+
+                <Label Grid.Row="3"
+                       Text="قارئ محرر أصلي للقراءة والنسخ والتحديد. زر «فصل» يفتح نسخة مستقلة عن المرآة."
+                       FontSize="10" TextColor="#6C7A89" LineBreakMode="WordWrap" />
             </Grid>
         </Border>
 
         <Border x:Name="DictionaryPanel" IsVisible="False" VerticalOptions="End" HorizontalOptions="End"
-                WidthRequest="460" StrokeThickness="1" Padding="10" Margin="8">
+                WidthRequest="540" StrokeThickness="1" Padding="12" Margin="8">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="14" />
             </Border.StrokeShape>
@@ -134,8 +219,9 @@
                         <Border.GestureRecognizers>
                             <PanGestureRecognizer PanUpdated="OnDictionaryPanelPan" />
                         </Border.GestureRecognizers>
-                        <Label Text="☰ انقر كلمة للاختيار · اسحب هنا أو استخدم الأسهم" FontSize="10"
-                               TextColor="#7EDBFF" Opacity="0.88" />
+                        <Label Text="☰ انقر كلمة للاختيار · استخدم «جملة» لمراجعة سياق كامل"
+                               FontSize="11" TextColor="#7EDBFF" Opacity="0.9"
+                               LineBreakMode="WordWrap" />
                     </Border>
                     <Button Grid.Column="1" Text="↖" Clicked="OnDictionaryNudge" CommandParameter="-120,-90"
                             FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
@@ -153,24 +239,47 @@
                             FontSize="11" Padding="6,0" WidthRequest="34" HeightRequest="28" CornerRadius="8"
                             BackgroundColor="#1A2A44" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
                 </Grid>
-                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="6">
                     <Label Grid.Column="0" x:Name="LblDictionarySelection" Text="النص المحدد"
-                           FontSize="12" TextColor="#D7F6FF" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                    <Button Grid.Column="1" x:Name="BtnDictionaryExplain" Text="معجم" Clicked="OnDictionaryExplain"
-                            FontSize="11" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                           FontSize="13" TextColor="#D7F6FF" FontAttributes="Bold"
+                           LineBreakMode="WordWrap" MaxLines="2" />
+                    <Button Grid.Column="1" x:Name="BtnDictionarySentence" Text="جملة" Clicked="OnDictionarySelectSentence"
+                            FontSize="12" Padding="8,0" HeightRequest="32" CornerRadius="8"
                             BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
-                    <Button Grid.Column="2" Text="×" Clicked="OnDictionaryClose"
-                            FontSize="12" Padding="7,0" HeightRequest="30" CornerRadius="8"
+                    <Button Grid.Column="2" x:Name="BtnDictionaryExplain" Text="معجم" Clicked="OnDictionaryExplain"
+                            FontSize="12" Padding="8,0" HeightRequest="32" CornerRadius="8"
+                            BackgroundColor="#12385A" TextColor="#D7F6FF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="3" Text="×" Clicked="OnDictionaryClose"
+                            FontSize="13" Padding="7,0" HeightRequest="32" CornerRadius="8"
                             BackgroundColor="#3A1020" TextColor="#FF8FA3" BorderColor="#55FF4D6D" BorderWidth="1" />
                 </Grid>
-                <ScrollView x:Name="DictionaryScroll" HeightRequest="245">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                    <Button Grid.Column="0" x:Name="BtnDictionaryTabLexical" Text="المعجم" Clicked="OnDictionaryTabLexical"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#1E5C82" TextColor="#FFFFFF" BorderColor="#5522E5FF" BorderWidth="1" />
+                    <Button Grid.Column="1" x:Name="BtnDictionaryTabProof" Text="التوثيق التقني" Clicked="OnDictionaryTabProof"
+                            FontSize="12" Padding="8,0" HeightRequest="30" CornerRadius="8"
+                            BackgroundColor="#10243A" TextColor="#B7D7EF" BorderColor="#3357E3FF" BorderWidth="1" />
+                </Grid>
+                <ScrollView x:Name="DictionaryScroll" HeightRequest="360">
                     <VerticalStackLayout x:Name="DictionaryResultStack" Spacing="8" FlowDirection="RightToLeft">
                         <Border StrokeThickness="1" Padding="8,6" BackgroundColor="#14243A" Stroke="#3357E3FF">
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="8" />
                             </Border.StrokeShape>
-                            <Label Text="انقر معجم للحصول على بدائل وسياقات المصطلح."
-                                   FontSize="11" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.25" />
+                            <Label Text="انقر معجم للحصول على بدائل وسياقات المصطلح، أو اختر «جملة» قبل المعجم لمراجعة سياق كامل."
+                                   FontSize="13" TextColor="#CFEFFF" LineBreakMode="WordWrap" LineHeight="1.5" />
+                        </Border>
+                    </VerticalStackLayout>
+                </ScrollView>
+                <ScrollView x:Name="DictionaryProofScroll" HeightRequest="360" IsVisible="False">
+                    <VerticalStackLayout x:Name="DictionaryProofStack" Spacing="8" FlowDirection="LeftToRight">
+                        <Border StrokeThickness="1" Padding="8,6" BackgroundColor="#182033" Stroke="#668B5CF6">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8" />
+                            </Border.StrokeShape>
+                            <Label Text="تظهر هنا مسارات الإثبات التقنية فقط: hashes، OCR boxes، Merkle root، ومصدر الترجمة. لا تُخلط هذه التفاصيل مع المعجم اللغوي."
+                                   FontSize="12" TextColor="#D7E7FF" LineBreakMode="WordWrap" LineHeight="1.45" />
                         </Border>
                     </VerticalStackLayout>
                 </ScrollView>

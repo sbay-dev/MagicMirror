@@ -15,7 +15,7 @@ public sealed class NullScreenCapture : IScreenCapture
 {
     public bool IsAvailable => false;
 
-    public Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height)
+    public Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height, double qualityScale = 1.0)
         => Task.FromResult(new CaptureResult { Pixels = Array.Empty<byte>(), Width = 0, Height = 0 });
 
     public Task<CaptureResult> CapturePreviewAsync(int screenX, int screenY, int width, int height, int maxDimension = 900)

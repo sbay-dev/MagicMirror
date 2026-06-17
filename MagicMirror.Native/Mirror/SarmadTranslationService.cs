@@ -12,30 +12,37 @@ namespace MagicMirror.Native.Mirror;
 ///      <see cref="MirrorSettings.AiModel"/> such as <c>@cf/openai/gpt-oss-20b</c>): the user's own
 ///      <see cref="MirrorSettings.GatewayBaseUrl"/> first, then the optional
 ///      <see cref="MirrorSettings.FallbackSarmadUrl"/>.
-///   2. <b>Free no-key machine translation</b> (Google <c>gtx</c> → MyMemory) when the AI gateway
-///      is unreachable or returns an error — so the mirror keeps translating even if the mesh is
-///      down (e.g. a deprecated upstream model).
+///   2. <b>Free no-key machine translation</b> (Google <c>gtx</c> → MyMemory), only when
+///      <see cref="MirrorSettings.ForceMachineTranslationFallback"/> is set for the current run after
+///      explicit user confirmation.
 ///
 /// The AI path stays primary so a correctly-deployed gateway uses the configured Sarmad model; the MT
-/// fallback guarantees the feature works regardless of mesh availability.
+/// fallback is explicit opt-in because it sends captured text to third-party services.
 /// </summary>
 public sealed class SarmadTranslationService : ITranslationService
 {
     private readonly HttpClient _http;
+    private readonly GlossaryMemoryStore _glossary;
     private const int BatchSize = 36;
+    private const int ProgressiveBatchSize = 1;
     private const int MaxParallel = 4;
     private const int MtParallel = 6;
 
-    public SarmadTranslationService(HttpClient? http = null)
+    public SarmadTranslationService(HttpClient http, GlossaryMemoryStore glossary)
     {
-        _http = http ?? new HttpClient { Timeout = TimeSpan.FromSeconds(40) };
+        _http = http;
+        _glossary = glossary;
     }
 
-    public async Task<IReadOnlyList<string>> TranslateBatchAsync(
+    public async Task<TranslationBatchResult> TranslateBatchAsync(
         IReadOnlyList<string> sources, string targetLanguage, MirrorSettings settings, CancellationToken ct = default)
     {
         var results = new string[sources.Count];
         for (int i = 0; i < sources.Count; i++) results[i] = sources[i]; // default: original
+        var sourceKinds = new TranslationSourceKind[sources.Count];
+        var sourceLabels = new string[sources.Count];
+        Array.Fill(sourceKinds, TranslationSourceKind.OriginalTextFallback);
+        Array.Fill(sourceLabels, TranslationSourceLabel(TranslationSourceKind.OriginalTextFallback));
 
         var slices = new List<(int Start, int Count)>();
         for (int start = 0; start < sources.Count; start += BatchSize)
@@ -50,16 +57,71 @@ public sealed class SarmadTranslationService : ITranslationService
                 var slice = new List<string>(sl.Count);
                 for (int i = 0; i < sl.Count; i++) slice.Add(sources[sl.Start + i]);
                 var translated = await TranslateSliceAsync(slice, targetLanguage, settings, ct);
-                for (int i = 0; i < sl.Count && i < translated.Length; i++)
-                    if (!string.IsNullOrWhiteSpace(translated[i]))
-                        results[sl.Start + i] = translated[i];
+                for (int i = 0; i < sl.Count && i < translated.Lines.Length; i++)
+                {
+                    if (!string.IsNullOrWhiteSpace(translated.Lines[i]))
+                        results[sl.Start + i] = translated.Lines[i];
+                    sourceKinds[sl.Start + i] = translated.Source;
+                    sourceLabels[sl.Start + i] = TranslationSourceLabel(translated.Source, translated.Reason);
+                }
             }
             catch { /* keep originals for this slice */ }
             finally { gate.Release(); }
         });
         await Task.WhenAll(tasks);
 
-        return results;
+        var source = SummarizeSources(sourceKinds);
+        return new TranslationBatchResult(
+            results,
+            source,
+            TranslationSourceSummary(sourceKinds),
+            sourceKinds,
+            sourceLabels);
+    }
+
+    public async IAsyncEnumerable<TranslationBatchProgress> TranslateBatchProgressiveAsync(
+        IReadOnlyList<string> sources,
+        string targetLanguage,
+        MirrorSettings settings,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct = default)
+    {
+        if (sources.Count == 0)
+            yield break;
+
+        var completed = 0;
+        for (var start = 0; start < sources.Count; start += ProgressiveBatchSize)
+        {
+            ct.ThrowIfCancellationRequested();
+            var count = Math.Min(ProgressiveBatchSize, sources.Count - start);
+            var slice = new List<string>(count);
+            for (var i = 0; i < count; i++)
+                slice.Add(sources[start + i]);
+
+            SliceTranslationResult translated;
+            try
+            {
+                translated = await TranslateSliceAsync(slice, targetLanguage, settings, ct);
+            }
+            catch (Exception ex)
+            {
+                MirrorLog.Info($"Progressive translation slice failed ({ex.GetType().Name}); keeping originals.");
+                translated = new SliceTranslationResult(
+                    slice.ToArray(),
+                    TranslationSourceKind.OriginalTextFallback,
+                    $"Progressive slice failed ({ex.GetType().Name}); kept original text.");
+            }
+
+            completed += count;
+            yield return new TranslationBatchProgress(
+                start,
+                translated.Lines,
+                translated.Source,
+                TranslationSourceLabel(translated.Source, translated.Reason),
+                Enumerable.Repeat(translated.Source, translated.Lines.Length).ToArray(),
+                Enumerable.Repeat(TranslationSourceLabel(translated.Source, translated.Reason), translated.Lines.Length).ToArray(),
+                completed,
+                sources.Count);
+        }
     }
 
     public async Task<string> ExplainDictionaryAsync(
@@ -68,7 +130,7 @@ public sealed class SarmadTranslationService : ITranslationService
         if (string.IsNullOrWhiteSpace(selectedText))
             throw new ArgumentException("No selected text for dictionary explanation.", nameof(selectedText));
 
-        var selected = TrimForPrompt(selectedText.Trim(), 240);
+        var selected = TrimForPrompt(selectedText.Trim(), 480);
         if (string.IsNullOrWhiteSpace(settings.GatewayBaseUrl) && string.IsNullOrWhiteSpace(settings.FallbackSarmadUrl))
             return BuildDictionaryNotConfiguredMessage(selected);
 
@@ -87,7 +149,13 @@ public sealed class SarmadTranslationService : ITranslationService
                 var context = attempt.ContextChars <= 0
                     ? ""
                     : CompactDictionaryContext(documentContext, attempt.ContextChars);
-                var prompt = BuildDictionaryPrompt(selected, context, targetName, attempt.Compact);
+                var rules = _glossary.GetRelevantRules(new[] { selected, context }, targetLanguage, maxRules: 8);
+                var prompt = BuildDictionaryPrompt(
+                    selected,
+                    context,
+                    targetName,
+                    attempt.Compact,
+                    _glossary.BuildPromptGuidance(rules));
                 return await AskAsync(prompt, targetLanguage, settings, ct,
                     contextOverride: "Magic Mirror dictionary lookup. Keep payload small; use selected term plus nearby context only.");
             }
@@ -104,16 +172,28 @@ public sealed class SarmadTranslationService : ITranslationService
         return BuildDictionaryUnavailableMessage(selected, last ?? new InvalidOperationException("Dictionary gateway rejected all attempts."));
     }
 
-    private static string BuildDictionaryPrompt(string selectedText, string documentContext, string targetName, bool compact)
+    private static string BuildDictionaryPrompt(
+        string selectedText,
+        string documentContext,
+        string targetName,
+        bool compact,
+        string glossaryGuidance)
     {
         var context = (documentContext ?? "").Trim();
 
         var sb = new StringBuilder();
         sb.Append("Target: ").AppendLine(targetName)
-          .AppendLine("Analyze the selected term lexically. Reply only in the target language.")
-          .AppendLine("Required: domain/context; at least five alternatives with fit/non-fit notes; final decisive recommendation.")
+          .AppendLine("Analyze the selected term or sentence lexically. Reply only in the target language.")
+          .AppendLine("Required: domain/context; at least five alternatives with fit/non-fit notes when a term is selected; final decisive recommendation.")
+          .AppendLine("Act as a provenance auditor, not as a mixed translator: bind the term to the provided OCR original, translated sentence, and proof path when present.")
+          .AppendLine("Return both a literal glossary reading and a sentence-level glossary reading; if the source is MT/original fallback, mark the path as not Sarmad-verified.")
           .AppendLine("Preserve technical identifiers (LCNS, CNS, CubiCrypt, GPT, QKV); do not invent unsupported meanings.")
           .Append("Selected: ").AppendLine(selectedText);
+        if (!string.IsNullOrWhiteSpace(glossaryGuidance))
+        {
+            sb.AppendLine()
+              .AppendLine(glossaryGuidance);
+        }
         if (context.Length > 0)
         {
             sb.AppendLine("Nearby context:")
@@ -175,12 +255,22 @@ public sealed class SarmadTranslationService : ITranslationService
             "تم تعطيل fallback القديم لأنه كان يشير إلى بوابة وثائق تستخدم نموذجًا منتهيًا. للمعجم السياقي اضبط GatewayBaseUrl على نشر MagicMirror/Cloudflare الخاص بك، وتأكد أن النموذج هو @cf/openai/gpt-oss-20b أو نموذج Cloudflare مدعوم.";
     }
 
-    private async Task<string[]> TranslateSliceAsync(
+    private async Task<SliceTranslationResult> TranslateSliceAsync(
         List<string> slice, string targetLanguage, MirrorSettings settings, CancellationToken ct)
     {
         string targetName = LanguageName(targetLanguage);
         var promptSlice = slice.Select(NormalizeOcrNoise).ToList();
-        var prompt = BuildTranslationPrompt(promptSlice, targetName);
+        var rules = _glossary.GetRelevantRules(promptSlice, targetLanguage);
+        var prompt = BuildTranslationPrompt(promptSlice, targetName, _glossary.BuildPromptGuidance(rules));
+
+        if (settings.ForceMachineTranslationFallback && settings.AllowMachineTranslationFallback)
+        {
+            MirrorLog.Info("User explicitly selected MT fallback for this translation run.");
+            return new SliceTranslationResult(
+                await TranslateSliceViaMtAsync(slice, targetLanguage, settings, ct),
+                TranslationSourceKind.MachineTranslationFallback,
+                "User explicitly selected MT fallback for the whole capture.");
+        }
 
         string answer;
         try
@@ -189,24 +279,78 @@ public sealed class SarmadTranslationService : ITranslationService
         }
         catch (Exception ex)
         {
-            MirrorLog.Info($"AI gateway failed ({ex.GetType().Name}) — using MT fallback");
-            return await TranslateSliceViaMtAsync(slice, targetLanguage, ct);
+            MirrorLog.Info($"AI gateway failed ({ex.GetType().Name}); MT fallback disabled.");
+            return new SliceTranslationResult(
+                slice.ToArray(),
+                TranslationSourceKind.OriginalTextFallback,
+                $"Sarmad gateway failed ({ex.GetType().Name}) and MT fallback is disabled.");
         }
+        var parsedLines = CountNumberedTranslations(answer, slice.Count);
         var viaAi = ParseNumbered(answer, slice.Count, slice);
         for (int i = 0; i < viaAi.Length; i++)
-            viaAi[i] = ApplyTerminologyPostEdits(promptSlice[i], viaAi[i], targetLanguage);
+            viaAi[i] = ApplyLearnedAndBuiltInPostEdits(promptSlice[i], viaAi[i], targetLanguage);
 
-        // If the AI gateway left most lines unchanged (mesh down / parsing miss), use free MT.
-        int changed = 0;
-        for (int i = 0; i < slice.Count; i++)
-            if (!string.Equals(viaAi[i], slice[i], StringComparison.Ordinal)) changed++;
-        if (changed >= Math.Max(1, slice.Count / 2)) return viaAi;
+        if (LooksLikeEnglishInsteadOfArabic(targetLanguage, viaAi))
+        {
+            MirrorLog.Info("AI translation appears to be English/original while target is Arabic; waiting for explicit MT approval.");
+            return new SliceTranslationResult(
+                slice.ToArray(),
+                TranslationSourceKind.OriginalTextFallback,
+                "Sarmad response looked like English/original text while target is Arabic; explicit MT approval is required.");
+        }
 
-        MirrorLog.Info($"AI translation weak ({changed}/{slice.Count} changed) — using MT fallback");
-        return await TranslateSliceViaMtAsync(slice, targetLanguage, ct);
+        if (parsedLines > 0)
+            return new SliceTranslationResult(
+                viaAi,
+                TranslationSourceKind.SarmadGateway,
+                "Sarmad AI returned a numbered, context-aware aligned translation.");
+
+        MirrorLog.Info("AI translation response was not a numbered aligned list; keeping AI output until explicit MT approval.");
+        return new SliceTranslationResult(
+            viaAi,
+            TranslationSourceKind.SarmadGateway,
+            "Sarmad AI returned unnumbered output; explicit MT approval is required before any fallback switch.");
     }
 
-    private static string BuildTranslationPrompt(List<string> slice, string targetName)
+    private static TranslationSourceKind SummarizeSources(IReadOnlyList<TranslationSourceKind> sources)
+    {
+        var distinct = sources.Distinct().ToList();
+        return distinct.Count == 1 ? distinct[0] : TranslationSourceKind.Mixed;
+    }
+
+    private static string TranslationSourceLabel(TranslationSourceKind source, string reason = "") => source switch
+    {
+        TranslationSourceKind.SarmadGateway => AppendReason("Sarmad AI", reason),
+        TranslationSourceKind.MachineTranslationFallback => AppendReason("MT fallback (non-academic)", reason),
+        TranslationSourceKind.Mixed => AppendReason("mixed sources", reason),
+        _ => AppendReason("original fallback", reason),
+    };
+
+    private static string AppendReason(string label, string reason)
+        => string.IsNullOrWhiteSpace(reason) ? label : $"{label}: {reason}";
+
+    private static string TranslationSourceSummary(IReadOnlyList<TranslationSourceKind> sources)
+    {
+        var counts = sources
+            .GroupBy(s => s)
+            .OrderByDescending(g => g.Count())
+            .Select(g => $"{ShortSourceLabel(g.Key)}={g.Count()}")
+            .ToList();
+        var source = SummarizeSources(sources);
+        return source == TranslationSourceKind.Mixed
+            ? "mixed sources: " + string.Join(", ", counts)
+            : TranslationSourceLabel(source);
+    }
+
+    private static string ShortSourceLabel(TranslationSourceKind source) => source switch
+    {
+        TranslationSourceKind.SarmadGateway => "Sarmad",
+        TranslationSourceKind.MachineTranslationFallback => "MT",
+        TranslationSourceKind.OriginalTextFallback => "Original",
+        _ => "Mixed",
+    };
+
+    private static string BuildTranslationPrompt(List<string> slice, string targetName, string glossaryGuidance)
     {
         var sb = new StringBuilder();
         sb.Append("You are the Magic Mirror domain-aware translation engine. Translate each numbered line into ")
@@ -218,10 +362,16 @@ public sealed class SarmadTranslationService : ITranslationService
           .AppendLine("Religious/sacred texts: translate faithfully and reverently; preserve doctrinal and legal meaning; do not add interpretation or sectarian wording; preserve proper names, references, and formulaic terms. If the source is scripture or hadith, render it as a translation of meaning, not as a replacement for the original.")
           .AppendLine("Legal, medical, or safety-critical texts: preserve exact meaning, scope, negation, quantities, conditions, and uncertainty. Do not simplify away technical risk.")
           .AppendLine("Terminology: preserve acronyms, model names, project names, equations, identifiers, citations, and proper nouns unless the source explicitly expands them. Examples: LCNS, CNS, CubiCrypt, Cubic Neural Statistics, GPT, QKV remain as terms; do not translate CNS as central nervous system unless the source is explicitly anatomical/medical.")
+          .AppendLine("If user-approved glossary memory is provided below, treat it as the highest-priority terminology policy when the context matches.")
           .AppendLine("OCR handling: the input may contain recognition noise. Correct obvious OCR confusions only when context is unambiguous (for example: fonnal->formal, The01y->Theory, govemed->governed, mixmg->mixing, stmctured->structured, Ca1l->can, IIO->no). If uncertain, preserve the source token.")
           .AppendLine("Line alignment: output exactly one translated line for each input line, in the same order, with the same line number. Do not merge lines, split lines, summarize, explain, or add notes.")
           .AppendLine("Output ONLY the numbered translations, one per line, each prefixed with its number, a period, and a space (e.g. \"1. ...\").")
           .AppendLine();
+        if (!string.IsNullOrWhiteSpace(glossaryGuidance))
+        {
+            sb.AppendLine(glossaryGuidance)
+              .AppendLine();
+        }
 
         for (int i = 0; i < slice.Count; i++)
             sb.Append(i + 1).Append(". ").AppendLine(slice[i].Replace("\r", " ").Replace("\n", " "));
@@ -230,7 +380,8 @@ public sealed class SarmadTranslationService : ITranslationService
     }
 
     // ── Free no-key MT fallback (Google gtx → MyMemory), per line, bounded parallelism ──
-    private async Task<string[]> TranslateSliceViaMtAsync(List<string> slice, string targetLanguage, CancellationToken ct)
+    private async Task<string[]> TranslateSliceViaMtAsync(
+        List<string> slice, string targetLanguage, MirrorSettings settings, CancellationToken ct)
     {
         var outArr = new string[slice.Count];
         for (int i = 0; i < slice.Count; i++) outArr[i] = slice[i];
@@ -241,7 +392,7 @@ public sealed class SarmadTranslationService : ITranslationService
             await gate.WaitAsync(ct);
             try
             {
-                var t = await TranslateLineMtAsync(slice[i], targetLanguage, ct);
+                var t = await TranslateLineMtAsync(slice[i], targetLanguage, settings, ct);
                 if (!string.IsNullOrWhiteSpace(t)) outArr[i] = t;
             }
             catch { /* keep original */ }
@@ -251,13 +402,17 @@ public sealed class SarmadTranslationService : ITranslationService
         return outArr;
     }
 
-    private async Task<string?> TranslateLineMtAsync(string text, string targetLanguage, CancellationToken ct)
+    private async Task<string?> TranslateLineMtAsync(
+        string text, string targetLanguage, MirrorSettings settings, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(text)) return null;
         var source = NormalizeOcrNoise(text);
         string tl = (targetLanguage ?? "ar").Split('-')[0];
-        var translated = await TranslateGoogleGtxAsync(source, tl, ct) ?? await TranslateMyMemoryAsync(source, tl, ct);
-        return translated == null ? null : ApplyTerminologyPostEdits(source, translated, targetLanguage ?? "ar");
+        string sl = ResolveMtSourceLanguage(source, settings.SourceLanguageHint, tl);
+        var translated = await TranslateGoogleGtxAsync(source, sl, tl, ct) ?? await TranslateMyMemoryAsync(source, sl, tl, ct);
+        return IsProviderErrorText(translated)
+            ? null
+            : ApplyLearnedAndBuiltInPostEdits(source, translated!, targetLanguage ?? "ar");
     }
 
     private static string NormalizeOcrNoise(string text)
@@ -271,6 +426,12 @@ public sealed class SarmadTranslationService : ITranslationService
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase |
                 System.Text.RegularExpressions.RegexOptions.CultureInvariant);
         return s;
+    }
+
+    private string ApplyLearnedAndBuiltInPostEdits(string source, string translated, string targetLanguage)
+    {
+        var learned = _glossary.ApplyPostEdits(source, translated, targetLanguage);
+        return ApplyTerminologyPostEdits(source, learned, targetLanguage);
     }
 
     private static string ApplyTerminologyPostEdits(string source, string translated, string targetLanguage)
@@ -303,6 +464,64 @@ public sealed class SarmadTranslationService : ITranslationService
 
     private static bool IsArabic(string targetLanguage) =>
         (targetLanguage ?? "").StartsWith("ar", StringComparison.OrdinalIgnoreCase);
+
+    private static string ResolveMtSourceLanguage(string text, string sourceLanguageHint, string targetLanguage)
+    {
+        var hint = (sourceLanguageHint ?? "").Trim();
+        if (!string.IsNullOrWhiteSpace(hint) &&
+            !string.Equals(hint, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            return hint.Split('|')[0].Trim();
+        }
+
+        var arabic = 0;
+        var latin = 0;
+        foreach (var ch in text)
+        {
+            if (ch is >= '\u0600' and <= '\u06FF')
+                arabic++;
+            else if ((ch is >= 'A' and <= 'Z') || (ch is >= 'a' and <= 'z'))
+                latin++;
+        }
+
+        if (latin > arabic)
+            return "en";
+        if (arabic > latin)
+            return "ar";
+        return string.Equals(targetLanguage, "en", StringComparison.OrdinalIgnoreCase) ? "ar" : "en";
+    }
+
+    private static bool IsProviderErrorText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return true;
+
+        var upper = text.Trim().ToUpperInvariant();
+        return upper.Contains("INVALID SOURCE LANGUAGE", StringComparison.Ordinal) ||
+               upper.Contains("LANGPAIR=", StringComparison.Ordinal) ||
+               upper.Contains("NO CONTENT", StringComparison.Ordinal) ||
+               upper.Contains("QUERY PARAM", StringComparison.Ordinal) ||
+               upper.Contains("MYMEMORY WARNING", StringComparison.Ordinal);
+    }
+
+    private static bool LooksLikeEnglishInsteadOfArabic(string targetLanguage, IReadOnlyList<string> lines)
+    {
+        if (!IsArabic(targetLanguage))
+            return false;
+
+        var text = string.Join(" ", lines);
+        var arabic = 0;
+        var latin = 0;
+        foreach (var ch in text)
+        {
+            if (ch is >= '\u0600' and <= '\u06FF')
+                arabic++;
+            else if ((ch is >= 'A' and <= 'Z') || (ch is >= 'a' and <= 'z'))
+                latin++;
+        }
+
+        return latin >= 12 && arabic < 3;
+    }
 
     private static readonly (string Pattern, string Replacement)[] OcrCorrections =
     {
@@ -337,12 +556,14 @@ public sealed class SarmadTranslationService : ITranslationService
     };
 
     /// <summary>Google's public <c>gtx</c> endpoint (no key). Response: nested array; root[0][n][0] = segment.</summary>
-    private async Task<string?> TranslateGoogleGtxAsync(string text, string tl, CancellationToken ct)
+    private async Task<string?> TranslateGoogleGtxAsync(string text, string sl, string tl, CancellationToken ct)
     {
         try
         {
-            var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-                + Uri.EscapeDataString(tl) + "&dt=t&q=" + Uri.EscapeDataString(text);
+            var googleSource = string.IsNullOrWhiteSpace(sl) ? "auto" : sl;
+            var url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl="
+                + Uri.EscapeDataString(googleSource) + "&tl=" + Uri.EscapeDataString(tl)
+                + "&dt=t&q=" + Uri.EscapeDataString(text);
             using var resp = await _http.GetAsync(url, ct);
             if (!resp.IsSuccessStatusCode) return null;
             var body = await resp.Content.ReadAsStringAsync(ct);
@@ -356,18 +577,24 @@ public sealed class SarmadTranslationService : ITranslationService
                 if (s.ValueKind == JsonValueKind.Array && s.GetArrayLength() > 0 && s[0].ValueKind == JsonValueKind.String)
                     sb.Append(s[0].GetString());
             var outText = sb.ToString().Trim();
-            return outText.Length > 0 ? outText : null;
+            return IsProviderErrorText(outText) ? null : outText;
         }
         catch { return null; }
     }
 
     /// <summary>MyMemory free endpoint (no key): {responseData:{translatedText}}.</summary>
-    private async Task<string?> TranslateMyMemoryAsync(string text, string tl, CancellationToken ct)
+    private async Task<string?> TranslateMyMemoryAsync(string text, string sl, string tl, CancellationToken ct)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(sl) ||
+                string.Equals(sl, "auto", StringComparison.OrdinalIgnoreCase))
+            {
+                sl = "en";
+            }
+
             var url = "https://api.mymemory.translated.net/get?langpair="
-                + Uri.EscapeDataString("auto|" + tl) + "&q=" + Uri.EscapeDataString(text);
+                + Uri.EscapeDataString(sl + "|" + tl) + "&q=" + Uri.EscapeDataString(text);
             using var resp = await _http.GetAsync(url, ct);
             if (!resp.IsSuccessStatusCode) return null;
             var body = await resp.Content.ReadAsStringAsync(ct);
@@ -376,7 +603,7 @@ public sealed class SarmadTranslationService : ITranslationService
                 rd.TryGetProperty("translatedText", out var tt) && tt.ValueKind == JsonValueKind.String)
             {
                 var outText = (tt.GetString() ?? "").Trim();
-                return outText.Length > 0 ? outText : null;
+                return IsProviderErrorText(outText) ? null : outText;
             }
             return null;
         }
@@ -473,6 +700,24 @@ public sealed class SarmadTranslationService : ITranslationService
         return outArr;
     }
 
+    private static int CountNumberedTranslations(string answer, int count)
+    {
+        if (string.IsNullOrWhiteSpace(answer)) return 0;
+
+        var seen = new HashSet<int>();
+        foreach (var rawLine in answer.Split('\n'))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0) continue;
+            var m = System.Text.RegularExpressions.Regex.Match(line, @"^(\d+)[\.\)\:\-\t]\s*(.+)$");
+            if (!m.Success) continue;
+            if (int.TryParse(m.Groups[1].Value, out int idx) && idx >= 1 && idx <= count)
+                seen.Add(idx);
+        }
+
+        return seen.Count;
+    }
+
     private static string LanguageName(string code) => (code ?? "").ToLowerInvariant() switch
     {
         "ar" or "ar-sa" => "Arabic",
@@ -503,4 +748,6 @@ public sealed class SarmadTranslationService : ITranslationService
     {
         public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
     }
+
+    private sealed record SliceTranslationResult(string[] Lines, TranslationSourceKind Source, string Reason);
 }

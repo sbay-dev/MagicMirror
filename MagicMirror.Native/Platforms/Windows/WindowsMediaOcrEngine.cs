@@ -31,12 +31,24 @@ public sealed class WindowsMediaOcrEngine : IOcrEngine
         var engine = ResolveEngine(settings.SourceLanguageHint);
         if (engine == null) return Array.Empty<OcrTextRegion>();
 
-        // Windows.Media.Ocr caps the input dimension; bail if exceeded (Tesseract handles big frames).
-        if (capture.Width > OcrEngine.MaxImageDimension || capture.Height > OcrEngine.MaxImageDimension)
-            return Array.Empty<OcrTextRegion>();
+        var pixels = capture.Pixels;
+        var ocrWidth = capture.Width;
+        var ocrHeight = capture.Height;
+        var coordinateXScale = 1.0;
+        var coordinateYScale = 1.0;
+        var longest = Math.Max(capture.Width, capture.Height);
+        if (longest > OcrEngine.MaxImageDimension)
+        {
+            var scale = OcrEngine.MaxImageDimension / (double)longest;
+            ocrWidth = Math.Max(1, (int)Math.Round(capture.Width * scale));
+            ocrHeight = Math.Max(1, (int)Math.Round(capture.Height * scale));
+            pixels = ResizeBgraNearest(capture.Pixels, capture.Width, capture.Height, ocrWidth, ocrHeight);
+            coordinateXScale = capture.Width / (double)ocrWidth;
+            coordinateYScale = capture.Height / (double)ocrHeight;
+        }
 
         using var bitmap = SoftwareBitmap.CreateCopyFromBuffer(
-            capture.Pixels.AsBuffer(), BitmapPixelFormat.Bgra8, capture.Width, capture.Height, BitmapAlphaMode.Ignore);
+            pixels.AsBuffer(), BitmapPixelFormat.Bgra8, ocrWidth, ocrHeight, BitmapAlphaMode.Ignore);
 
         var result = await engine.RecognizeAsync(bitmap);
         if (result?.Lines == null) return Array.Empty<OcrTextRegion>();
@@ -54,19 +66,40 @@ public sealed class WindowsMediaOcrEngine : IOcrEngine
                 r = Math.Max(r, bb.Right);
                 b = Math.Max(b, bb.Bottom);
             }
-            int height = Math.Max(1, (int)Math.Ceiling(b - t));
+            int height = Math.Max(1, (int)Math.Ceiling((b - t) * coordinateYScale));
             regions.Add(new OcrTextRegion
             {
                 Text = line.Text,
-                X = (int)Math.Floor(l),
-                Y = (int)Math.Floor(t),
-                Width = Math.Max(1, (int)Math.Ceiling(r - l)),
+                X = (int)Math.Floor(l * coordinateXScale),
+                Y = (int)Math.Floor(t * coordinateYScale),
+                Width = Math.Max(1, (int)Math.Ceiling((r - l) * coordinateXScale)),
                 Height = height,
                 LineHeightHint = height,
                 Confidence = -1f, // engine does not expose per-line confidence
             });
         }
         return regions;
+    }
+
+    private static byte[] ResizeBgraNearest(byte[] source, int sourceWidth, int sourceHeight, int targetWidth, int targetHeight)
+    {
+        var target = new byte[targetWidth * targetHeight * 4];
+        for (var y = 0; y < targetHeight; y++)
+        {
+            var sourceY = Math.Min(sourceHeight - 1, (int)Math.Round((y + 0.5) * sourceHeight / targetHeight - 0.5));
+            for (var x = 0; x < targetWidth; x++)
+            {
+                var sourceX = Math.Min(sourceWidth - 1, (int)Math.Round((x + 0.5) * sourceWidth / targetWidth - 0.5));
+                var si = (sourceY * sourceWidth + sourceX) * 4;
+                var di = (y * targetWidth + x) * 4;
+                target[di] = source[si];
+                target[di + 1] = source[si + 1];
+                target[di + 2] = source[si + 2];
+                target[di + 3] = 255;
+            }
+        }
+
+        return target;
     }
 
     private static OcrEngine? ResolveEngine(string? sourceHint)

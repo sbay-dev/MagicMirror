@@ -1,0 +1,10 @@
+{
+  "slug": "ec-academic-ux",
+  "path": "theses\\phase1\\ec-academic-ux.md",
+  "model": "ec-academic-ux",
+  "prompt_sha256": "1984f97517ef7c81ff6bcbcc9f168a24947c5b0f6756e44d6cc6837a7b4e8c33",
+  "body_bytes": 2957,
+  "body_sha256": "de4b18e5ef2cd94f45ae5cf8093c34e265edf4c940c6dbc5716dda2869a5d1ce",
+  "signed_at": "2026-06-14T22:20:37.5302280Z",
+  "generated_by": "experts-council-app"
+}

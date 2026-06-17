@@ -17,19 +17,24 @@ public sealed class WindowsScreenCapture : IScreenCapture
 {
     public bool IsAvailable => true;
 
-    public async Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height)
+    public async Task<CaptureResult> CaptureRegionAsync(int screenX, int screenY, int width, int height, double qualityScale = 1.0)
     {
         if (width <= 0 || height <= 0)
             return new CaptureResult { Pixels = Array.Empty<byte>(), Width = 0, Height = 0 };
 
-        byte[] bgra = CaptureBgra(screenX, screenY, width, height);
-        byte[]? png = await EncodeAsync(bgra, width, height, BitmapEncoder.PngEncoderId);
+        var scale = Math.Clamp(qualityScale, 1.0, 3.0);
+        var captureWidth = Math.Max(1, (int)Math.Round(width * scale));
+        var captureHeight = Math.Max(1, (int)Math.Round(height * scale));
+        byte[] bgra = scale <= 1.01
+            ? CaptureBgra(screenX, screenY, width, height)
+            : CaptureBgraScaled(screenX, screenY, width, height, captureWidth, captureHeight);
+        byte[]? png = await EncodeAsync(bgra, captureWidth, captureHeight, BitmapEncoder.PngEncoderId);
 
         return new CaptureResult
         {
             Pixels = bgra,
-            Width = width,
-            Height = height,
+            Width = captureWidth,
+            Height = captureHeight,
             Png = png,
             ScreenX = screenX,
             ScreenY = screenY,
@@ -90,7 +95,7 @@ public sealed class WindowsScreenCapture : IScreenCapture
         return buffer;
     }
 
-    /// <summary>BitBlt + StretchBlt the desktop into a smaller top-down DIB (downscaled preview).</summary>
+    /// <summary>BitBlt + StretchBlt the desktop into a resized top-down DIB.</summary>
     private static byte[] CaptureBgraScaled(int x, int y, int w, int h, int dw, int dh)
     {
         IntPtr screenDc = GetDC(IntPtr.Zero);

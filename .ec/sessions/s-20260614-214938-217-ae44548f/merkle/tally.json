@@ -1,0 +1,73 @@
+{
+  "members": [
+    "ec-academic-ux",
+    "ec-code-risk",
+    "ec-linking-precision",
+    "ec-publisher-standards",
+    "ec-skeptic",
+    "ec-translation-semantics"
+  ],
+  "member_count": 6,
+  "threshold": 4,
+  "merkle_root": "27715715f4236048bc9a1dc78859626cd0c66281e143752a381249cf0966a7dc",
+  "adoptions": [
+    {
+      "id": "A1",
+      "text": "Magic Mirror must not be marketed as publisher-grade, publisher-adopted, or certified for academic publishing in v1.0.5.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A2",
+      "text": "Magic Mirror v1.0.5 may proceed only as a personal/research academic reading-aid preview with explicit limitations and user visual approval.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A3",
+      "text": "Third-party MT fallback must stay opt-in, off by default, visibly labelled non-academic, and documented as sending text to Google gtx / MyMemory.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A4",
+      "text": "Tesseract tessdata must be portable or auto-discovered; developer-only absolute paths are not acceptable release defaults.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A5",
+      "text": "Source-linking claims must be limited to block/measured OCR-line provenance; no exact source-word or publisher-precision claim is allowed.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A6",
+      "text": "Professional publisher release remains blocked until automated tests, translation-quality evaluation, structured export, accessibility/compliance, and external validation exist.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    },
+    {
+      "id": "A7",
+      "text": "The rebuilt v1.0.5 Windows artifact may be treated as a local review package, not a certified public publisher release.",
+      "agree": 6,
+      "disagree": 0,
+      "abstain": 0,
+      "status": "ADOPTED"
+    }
+  ],
+  "sealed_at": "2026-06-14T22:21:14.7145767Z",
+  "generated_by": "experts-council-app"
+}

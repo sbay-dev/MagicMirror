@@ -12,6 +12,9 @@ public sealed class MirrorSettingsStore
     private const string CurrentSarmadModel = "@cf/openai/gpt-oss-20b";
     private const string DeprecatedCanonicalSarmadUrl = "https://wmr-doc.pages.dev/api/sarmad/ask";
     private const string DedicatedGatewayBaseUrl = "https://magicmirror-sarmad-gateway.2sa.workers.dev";
+    private const int CurrentSettingsSchemaVersion = 3;
+    private const string DeprecatedTheorysTessDataPath =
+        @"X:\source\THEORYS\Items\tesseract-complete-package\models\tesseract-ocr\5\tessdata";
 
     private readonly string _path;
     private MirrorSettings _current;
@@ -72,6 +75,10 @@ public sealed class MirrorSettingsStore
         settings.TranslationTextColor = MirrorAppearanceColors.NormalizeHex(
             settings.TranslationTextColor, MirrorAppearanceColors.DefaultTextHex);
         settings.IdlePreviewFps = Math.Clamp(settings.IdlePreviewFps, 2, 30);
+        settings.OcrCaptureScale = Math.Clamp(settings.OcrCaptureScale <= 0 ? 2.0 : settings.OcrCaptureScale, 1.0, 3.0);
+        if (settings.SettingsSchemaVersion < 3)
+            settings.AllowMachineTranslationFallback = false;
+        settings.ForceMachineTranslationFallback = false;
 
         if (string.IsNullOrWhiteSpace(settings.TargetLanguage))
             settings.TargetLanguage = "ar";
@@ -91,6 +98,14 @@ public sealed class MirrorSettingsStore
         settings.FallbackSarmadUrl = (settings.FallbackSarmadUrl ?? "").Trim();
         if (string.Equals(settings.FallbackSarmadUrl.TrimEnd('/'), DeprecatedCanonicalSarmadUrl, StringComparison.OrdinalIgnoreCase))
             settings.FallbackSarmadUrl = "";
+        settings.TessDataPath = (settings.TessDataPath ?? "").Trim();
+        if (string.Equals(settings.TessDataPath, DeprecatedTheorysTessDataPath, StringComparison.OrdinalIgnoreCase) &&
+            !Directory.Exists(settings.TessDataPath))
+        {
+            settings.TessDataPath = "";
+        }
+        settings.TesseractExePath = (settings.TesseractExePath ?? "").Trim();
+        settings.SettingsSchemaVersion = CurrentSettingsSchemaVersion;
 
         return settings;
     }

@@ -22,6 +22,8 @@ MagicMirror/wwwroot/qemu-wasm/
 *.log
 mirror-settings.json
 mirror.log
+.ec/terminals/
+.ec/**/.ec.lock
 
 # OS files
 Thumbs.db

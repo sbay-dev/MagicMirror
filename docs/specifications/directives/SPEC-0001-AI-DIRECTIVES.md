@@ -47,8 +47,8 @@ Solution layout:
 - Engine abstraction: `MagicMirror.Native/Mirror/IMirrorServices.cs` (`IOcrEngine`).
 - Tesseract (primary): `MagicMirror.Native/Mirror/TesseractOcrEngine.cs` — shells
   `tesseract "<png>" stdout --tessdata-dir "<dir>" -l eng+ara --psm 6 tsv`, groups word rows into
-  lines. Uses THEORYS tessdata
-  `X:\source\THEORYS\Items\tesseract-complete-package\models\tesseract-ocr\5\tessdata`.
+  lines. `MirrorSettings.TessDataPath` is optional; when empty, tessdata is auto-discovered from the
+  app folder, Tesseract installation, or `TESSDATA_PREFIX` rather than a developer-only path.
 - OS fallback: `MagicMirror.Native/Platforms/Windows/WindowsMediaOcrEngine.cs`
   (`Windows.Media.Ocr`).
 - Selection policy: `MagicMirror.Native/Mirror/OcrService.cs`.
@@ -132,14 +132,14 @@ Solution layout:
   for every request (it ignores the client model field; its upstream default was deprecated by
   Cloudflare). The previous code then silently left every line untranslated while still reporting
   "Translated N/N".
-- Fix in `MagicMirror.Native/Mirror/SarmadTranslationService.cs`:
+- Historical fix in `MagicMirror.Native/Mirror/SarmadTranslationService.cs` before the v1.0.5
+  fallback-hardening gate:
   - `ExtractAnswer` now throws on an `{"error":...}` body so a failed gateway is detected.
-  - `TranslateSliceAsync` falls back to **free no-key MT** when the AI gateway throws or leaves
-    most lines unchanged: `TranslateGoogleGtxAsync` (Google `gtx` endpoint) →
-    `TranslateMyMemoryAsync` (MyMemory), per line with bounded parallelism (`MtParallel`).
-  - The AI gateway (configured Sarmad model via the user's deployed gateway) stays **primary**; MT is the
-    safety net so the mirror always translates. Verified: self-test logged
-    `AI gateway failed (HttpRequestException) — using MT fallback` then real Arabic output.
+  - The original recovery path used **free no-key MT** (`TranslateGoogleGtxAsync` →
+    `TranslateMyMemoryAsync`) to avoid silent untranslated output. This behavior is superseded by
+    D43: MT may now run only after explicit per-run user confirmation.
+  - The AI gateway (configured Sarmad model via the user's deployed gateway) stays **primary**; fallback
+    is no longer an automatic safety net.
 - Note: to restore the AI path, deploy the web layer (`cepha publish cf`) with a current
   `CephaSarmadModel`, and set the native app's `GatewayBaseUrl` to it.
 
@@ -188,7 +188,8 @@ Solution layout:
 ## D18 — Mixed Arabic/English line direction and font construction  ⇐ SPEC-AUTH-009
 - Rendering fix: `MagicMirror.Native/Mirror/MirrorDrawable.cs`
   - `PrepareDisplayText(...)` wraps the whole Arabic output line in an RTL bidi isolate and wraps
-    embedded English/acronym runs (`CNS`, `LCNS`, `QKV`, etc.) in LTR isolates, so mixed scientific
+    embedded English/acronym runs (`CNS`, `LCNS`, `QKV`, etc.) in LTR isolates
+    (U+2067/U+2066 plus U+2069), so mixed scientific
     terms keep their internal order without breaking the Arabic line.
   - Mixed RTL/LTR lines switch to `Segoe UI`, a font that reliably covers both Arabic and Latin
     glyphs; pure Arabic lines can still use the detected Arabic family.
@@ -374,19 +375,18 @@ Solution layout:
 - `MirrorDrawable.RegisterSourceHitRegion(...)` adds source-text OCR boxes as fallback hit regions, so
   clicking the visible original text behind the translated overlay can still select the corresponding
   block when the translated text has been moved into the target-language reading column.
-- `MirrorDrawable.SelectedText` and `DrawSelectedTermHighlight(...)` draw a yellow term-level highlight
-  for the selected word in addition to the selected paragraph/block highlight, making successful
-  selection visible immediately.
+- `MirrorDrawable.SelectedTextBounds` provides direct selected-hit feedback. Fallback term matching
+  and border-style term highlighting must not draw additional boxes when a direct selected-hit mark
+  exists.
 - The dictionary panel instruction now tells the user to click any word in the mirror to select it.
 
 ## D30 — Reliable dictionary movement, source-position selection feedback, and compact gateway payloads  ⇐ SPEC-AUTH-021
 - `MirrorOverlayPage.xaml` gives the dictionary card explicit on-card movement buttons (`↖`, `↗`,
   `↙`, `↘`, reset) in addition to a larger drag handle, so the card remains movable even when pan
   gestures are unreliable on the current platform surface.
-- `MirrorDrawable.SelectedTextBounds` stores the exact rendered/source hit selected by the user.
-  `DrawSelectionHighlight(...)` now outlines the corresponding source/document block instead of
-  filling it with a large opaque yellow mask, while `DrawSelectedHitHighlight(...)` marks the selected
-  Arabic term/line itself.
+- `MirrorDrawable.SelectedTextBounds` stores the exact rendered hit selected by the user.
+  `DrawSelectedHitHighlight(...)` marks the selected Arabic term/line with a single translucent fill,
+  without adding a second source/document outline for the same dictionary selection.
 - `MirrorOverlayPage.OnDictionaryExplain(...)` sends only the selected term as `selectedText`; the
   original and translated block excerpts are kept in compact nearby context instead of being duplicated
   into the selected-text field.
@@ -407,9 +407,10 @@ Solution layout:
   `@cf/openai/gpt-oss-20b`.
 - `MirrorSettingsStore.Normalize(...)` migrates saved settings away from
   `@cf/openai/gpt-oss-120b` and clears the deprecated `wmr-doc.pages.dev` fallback URL.
-- With no configured gateway, `SarmadTranslationService` uses MT fallback for translation but returns
-  a clear "بوابة المعجم غير مضبوطة" status for dictionary analysis; it must not call the stale
-  documentation gateway or fabricate dictionary alternatives.
+- With no configured gateway, translation remains on the Sarmad/original path unless the v1.0.5
+  explicit MT prompt is enabled and accepted for that run. Dictionary analysis returns a clear
+  "بوابة المعجم غير مضبوطة" status; it must not call the stale documentation gateway or fabricate
+  dictionary alternatives.
 
 ## D32 — Dedicated Magic Mirror Cloudflare gateway  ⇐ SPEC-AUTH-023
 - The repository contains a standalone Worker gateway under
@@ -432,6 +433,179 @@ Solution layout:
 - The currently deployed dedicated gateway is
   `https://magicmirror-sarmad-gateway.2sa.workers.dev`; `MirrorSettings.GatewayBaseUrl` and
   `MirrorSettingsStore.Normalize(...)` default blank settings to this URL.
+
+## D33 — Translation-source disclosure and direction-aware dictionary UI  ⇐ SPEC-AUTH-024
+- `ITranslationService.TranslateBatchAsync(...)` returns `TranslationBatchResult`, including translated
+  lines, `TranslationSourceKind`, and a user-visible source label.
+- `SarmadTranslationService` marks each translation pass as `SarmadGateway`,
+  `MachineTranslationFallback`, `OriginalTextFallback`, or `Mixed`; `MirrorEngine` includes that label
+  in `MirrorResult.Status`, so `MirrorOverlayPage` shows the actual source in the overlay status.
+- `MirrorOverlayPage.ShowDictionaryResult(...)` normalizes model Markdown before rendering:
+  - Markdown headings become dictionary sections;
+  - Markdown tables become key/value rows or numbered alternative cards;
+  - table separators and table header rows are removed.
+- `AddDictionarySection(...)` creates card-based MAUI UI instead of a single raw label. Alternative
+  lines get inset cards, key/value content gets vertical rows, and technical LTR values are isolated.
+- Dictionary card fallback direction follows `MirrorSettings.TargetLanguage` via `IsRtl(...)`; each
+  title, value, and result line must still determine its own first-strong direction before rendering.
+
+## D34 — W3C-like dictionary direction, accurate hit-testing, and sentence review  ⇐ SPEC-AUTH-025
+- `MirrorOverlayPage.PrepareDictionaryDisplayText(...)` must use Unicode bidi isolates around the
+  paragraph and opposite-direction technical runs. It must not force all dictionary text into one
+  embedding direction when the line's first strong character indicates otherwise.
+- Dictionary UI labels created by `AddDictionarySection(...)` and `CreateDictionaryKeyValueRow(...)`
+  must choose `FlowDirection`, `HorizontalTextAlignment`, font size, and line height from the line's
+  own first-strong direction, with target language used only as fallback.
+- `MirrorDrawable.TextHitRegion` differentiates block, line, word, and source hit scopes so the
+  overlay can select a word precisely or expand that selection to the containing sentence/line.
+- `MirrorOverlayPage.FindHitRegionAtCanvasPoint(...)` must normalize WinUI pointer coordinates to
+  MAUI canvas coordinates, prefer only contained/inflated word hits, then line hits, and avoid
+  selecting a distant nearest word.
+- The dictionary panel exposes a `جملة` action. After a word is selected, this action expands the
+  dictionary selection to the sentence containing that word and sends the full sentence to
+  `SarmadTranslationService.ExplainDictionaryAsync(...)`.
+
+## D35 — User-approved glossary memory and adoptable dictionary proposals  ⇐ SPEC-AUTH-026
+- `GlossaryMemoryStore` persists user-approved dictionary selections as local JSON rules in the
+  app-data directory. This is a prompt/rule learning layer, not direct fine-tuning of the remote
+  Cloudflare model.
+- Each stored rule records target language, source text, selected displayed text, accepted
+  replacement, nearby context, use count, and timestamps. The store keeps a bounded, recent/frequent
+  rule set so prompt payloads remain compact.
+- `MirrorOverlayPage` must render an `اعتمد` action for dictionary alternatives that can be parsed
+  as candidate replacements. Clicking it updates the selected `TranslatedBlock.TranslatedText`
+  immediately and saves the rule through `GlossaryMemoryStore.RememberSelection(...)`.
+- `SarmadTranslationService` must retrieve relevant glossary rules for both translation and
+  dictionary prompts, inject them as highest-priority user-approved guidance, and apply safe
+  post-edit replacements after AI or MT fallback translation when source/context matches.
+- If the selected text cannot be found in the current displayed translation, the app must refuse the
+  replacement with a visible status instead of guessing a destructive edit.
+
+## D36 — Single selection marker and progressive translation stream  ⇐ SPEC-AUTH-027
+- `MirrorDrawable` must not render both direct selected-hit highlighting and fallback term matching
+  for the same selection. Direct `SelectedTextBounds` is authoritative; fallback matching must not
+  produce repeated boxes across identical words.
+- The overlay must preserve the full-line rendering path for Arabic/RTL text. Do not split rendered
+  Arabic lines into spaced token columns just to support hit testing.
+- `ITranslationService.TranslateBatchProgressiveAsync(...)` yields small ordered translation slices.
+  Implementations should keep the existing full-batch method for callers that need a final result.
+- `MirrorEngine.TranslateRegionProgressiveAsync(...)` prepares capture/OCR once, yields placeholder
+  blocks immediately, then yields updated `MirrorResult` values as each translation slice completes.
+- `MirrorOverlayPage.TranslateCurrentViewAsync(...)` consumes the progressive stream and invalidates
+  the canvas after each batch so the user sees translation appear gradually instead of waiting for
+  the entire document.
+
+## D37 — Typewriter reveal and one authoritative selection rectangle  ⇐ SPEC-AUTH-028
+- `SarmadTranslationService.ProgressiveBatchSize` should keep translation slices small, but visible
+  delivery must not depend on slice granularity alone.
+- `MirrorOverlayPage.QueueTypewriterResult(...)` buffers every progressive `MirrorResult` as target
+  text and exposes cloned `TranslatedBlock` values whose `TranslatedText` is revealed by
+  `TypewriterTick()` one Unicode text element at a time via `StringInfo.GetNextTextElement(...)`.
+- Typewriter reconciliation must preserve placeholders until a real target arrives, reset only the
+  block whose target changed incompatibly, and avoid duplicate-target bugs by scanning block indexes
+  directly rather than using value-based lookup.
+- `MirrorDrawable.DrawSelectedHitHighlight(...)` is the only active selected-word marker path, and it
+  uses a single translucent fill rather than a stroked outline. Fallback term matching and block/source
+  outline selection must not draw additional yellow boxes for the same active dictionary selection.
+- `MirrorDrawable.RegisterSourceHitRegion(...)` must register the source/OCR block geometry exactly
+  from capture-derived coordinates, preserving `IsSource`; it must not subdivide source OCR boxes into
+  approximate word regions unless a future OCR engine supplies real per-word geometry.
+- `MirrorOverlayPage.ResolveSelectionHighlightBounds(...)` must return the exact OCR source block for
+  source selections instead of a click-centered approximation.
+
+## D38 — Translation selection must mark its original/OCR counterpart  ⇐ SPEC-AUTH-029
+- `MirrorDrawable.SelectedSourceTextBounds` stores a second, source-side marker only when the active
+  selection was made from translated text. It is intentionally separate from `SelectedTextBounds` so
+  the UI can show "translation + original" without drawing duplicate markers over the same word.
+- `MirrorOverlayPage.SelectDictionaryHit(...)` must set `SelectedSourceTextBounds` using
+  `ResolveCounterpartSourceBounds(...)` for translated hits and clear it for source-side hits.
+- `ResolveCounterpartSourceBounds(...)` must use the capture-derived OCR source block/line for the
+  same `TranslatedBlock`. Paragraph-merged blocks must preserve measured OCR source-line rectangles
+  through `OcrTextRegion.SourceLines` / `TranslatedBlock.SourceLines`; if measured line provenance is
+  unavailable, source-line highlighting must be documented as an inferred visual aid. It must not claim
+  source-word precision, because translation reorders and expands terms and that mapping is not
+  scientifically grounded.
+
+---
+
+## D39 — Default high-quality capture for OCR  ⇐ SPEC-AUTH-030
+- `MirrorSettings.OcrCaptureScale` defaults to `2.0` and is normalized to `1.0..3.0`, so translation
+  captures give OCR larger glyphs by default without changing the low-cost live preview capture.
+- `IScreenCapture.CaptureRegionAsync(...)` accepts the quality scale; on Windows,
+  `WindowsScreenCapture.CaptureRegionAsync(...)` uses GDI `StretchBlt` with `HALFTONE` into a larger
+  BGRA/PNG capture for OCR/Tesseract hand-off.
+- `WindowsMediaOcrEngine` must downscale only its internal OCR bitmap when the enhanced capture
+  exceeds `OcrEngine.MaxImageDimension`, then scale returned boxes back to the enhanced capture.
+- If UI Automation text is used instead of OCR, `MirrorEngine.ScaleTextRegionsForCapture(...)` scales
+  those text rectangles into the same capture coordinate space so source highlighting remains aligned.
+- Font detection must use the source-size line height, not the upscaled capture height, so a 2x OCR
+  image improves recognition without making translated typography look artificially large.
+
+---
+
+## D40 — Wheel/pinch resizing of the mirror window  ⇐ SPEC-AUTH-031
+- `MirrorOverlayPage.xaml` registers `PinchGestureRecognizer` on the glass surface; `OnPinchSurface(...)`
+  resizes the overlay window around its center in both live mirror mode and translated/frozen mode.
+- `OnCanvasPointerWheelChanged(...)` resizes the window in live mirror mode. In translated mode, plain
+  wheel remains reserved for reading overflow via `AdjustContentScroll(...)`, while `Ctrl + wheel`
+  performs the same centered window resize.
+- Wheel resizing uses a short debounce timer before `EndManipulation()` so the capture/preview refresh
+  happens after the user's resize burst instead of on every wheel notch.
+- Window resize bounds must keep the overlay usable: a safe minimum size is enforced and the maximum is
+  capped to the current display bounds when available.
+
+---
+
+## D41 — Smooth resize must keep the mirror input-owned while visually transparent  ⇐ SPEC-AUTH-032 / SPEC-AUTH-033
+- Wheel, pinch, and frame-grip resizing use a visual-only glass transparency path. Specifically,
+  `BeginSmoothWindowResize(...)` / `EndSmoothWindowResize(...)` may set
+  `MirrorDrawable.ManipulatingGlass` for visual transparency, but must not call
+  `MirrorWindowInterop.SetManipulationClip(...)` or make the body click-through.
+- During smooth resize, live preview capture is paused via `_dragging`; after a short wheel debounce or
+  pinch completion, `EndSmoothWindowResize(...)` refreshes the live capture once if the mirror is in
+  live mode.
+- Dragging the window may still use the transparent manipulation clip path; wheel/pinch/frame resize
+  must remain input-owned by the mirror to avoid passing scroll/input to the window behind.
+
+## D42 — Full-resolution settled capture after manipulation  ⇐ SPEC-AUTH-033
+- Normal idle live preview may stay lightweight/downscaled for responsiveness.
+- When drag/resize/zoom manipulation ends, `LiveTickAsync(force: true)` must use
+  `MirrorEngine.CaptureSettledPreviewAsync(...)`, which calls the full-resolution capture path instead
+  of the downscaled preview path. This restores crisp settled capture quality after release.
+
+## D43 — Academic-use disclosure and MT fallback gate  ⇐ Expert Council academic release review
+- `MirrorSettings.AllowMachineTranslationFallback` remains a privacy preference for MT availability in
+  settings, but it is not sufficient to execute MT. When Sarmad fails, returns unusable output, or
+  returns the wrong language, the UI must ask for an explicit per-run decision before any third-party
+  MT call.
+- `MirrorSettings.ForceMachineTranslationFallback` is the per-run execution gate. MT fallback must run
+  only when this flag is true after explicit user confirmation; `SarmadTranslationService` must not
+  silently reroute gateway failures, wrong-language responses, or unnumbered output to MT.
+- MT fallback must be visibly labelled as non-academic quality (`MT fallback (non-academic)` /
+  Arabic equivalent), and documentation must state that it sends text to third-party MT services.
+- Publisher/confidential workflows must keep MT fallback disabled unless explicitly accepted by the user.
+- A valid AI response that preserves a source term unchanged must remain on the Sarmad AI path; fallback
+  should be triggered by gateway failure or an unaligned/unparseable response, not by "line changed"
+  percentage.
+
+## D44 — Native reader/editor dictionary and proof tabs  ⇐ SPEC-AUTH-034..040
+- `MirrorOverlayPage.xaml` must keep `NativeOverlayEditor` as the trusted transparent text layer while
+  `MirrorDrawable` owns the background/capture/HUD/selection visuals. Canvas text drawing is not the
+  trusted reading path.
+- `OpenDetachedReader(...)` must provide independent controls for text size, wrapping, copy,
+  background color/opacity, ink color, and selected-text dictionary review.
+- `ConfigureEditorContextMenu(...)` must replace the Windows text control context menu with
+  `معجم المحدد`, `نسخ`, and `تحديد الكل` for both the transparent mirror editor and detached reader.
+- Reader/editor selections must map through `_readerSegments` / `TranslatedBlock` ownership and call
+  `SetSelectionOverlay(...)` so the original OCR/source block is visibly marked on the captured
+  document.
+- `BuildDictionaryProof(...)` must generate local provenance for the selected block: selected term,
+  original text hash, translation hash, leaf hash, Merkle root, path, source rectangle, and translation
+  source label. This is a local audit trace, not a publisher certificate.
+- The dictionary panel must keep the linguistic answer in `DictionaryResultStack` / **المعجم** and
+  technical OCR/Merkle/provenance details in `DictionaryProofStack` / **التوثيق التقني**.
+- Main dictionary rows follow the app target-language direction; technical proof rows use LTR flow to
+  preserve hashes, paths, and coordinates.
 
 ---
 

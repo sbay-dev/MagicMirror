@@ -1,0 +1,19 @@
+{
+  "slug": "ec-code-risk",
+  "leaf": "3af8b87662384770daca427f68ae11a8f32bdb2508be6b6692f4e37a4c672146",
+  "root": "27715715f4236048bc9a1dc78859626cd0c66281e143752a381249cf0966a7dc",
+  "siblings": [
+    {
+      "pos": "L",
+      "hash": "1f0e6254c11391e802c09be6b4da91cc3e6501382dc058c31e6b618bc3e56ab2"
+    },
+    {
+      "pos": "R",
+      "hash": "94b96373dd849329d1d996ebb35de195059ffaa2cac898735ad82f58027a5f57"
+    },
+    {
+      "pos": "R",
+      "hash": "71c6b9773d0d1caea53f69d9c11ece78ab70f93cc4e7f5515a32571ac0a6e0c8"
+    }
+  ]
+}

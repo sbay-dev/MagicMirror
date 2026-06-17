@@ -19,16 +19,20 @@ while preserving document structure, typography, and reading direction.
   capture.
 - Reads exposed window text through UI Automation when available.
 - Falls back to OCR through Tesseract or Windows.Media.Ocr.
-- Translates through a deployed Sarmad / Cloudflare `@cf/openai/gpt-oss-20b` gateway,
-  with machine-translation fallback for continuity.
-- Renders Arabic-first document output with robust RTL/LTR handling for
-  acronyms and scientific terms such as `CNS`, `LCNS`, and `QKV`.
+- Translates through a deployed Sarmad / Cloudflare `@cf/openai/gpt-oss-20b`
+  gateway and never silently mixes MT into a Sarmad result.
+- Provides native text-control reading surfaces: transparent mirror editor,
+  detachable reader window, selection, copy, and right-click dictionary actions.
+- Renders Arabic-first document output with robust RTL/LTR handling for acronyms
+  and scientific terms such as `CNS`, `LCNS`, and `QKV`.
+- Links selected translation text back to the measured OCR/source block and
+  exposes a separate technical proof tab for local Merkle/OCR provenance.
 - Provides reader-page mode, configurable background/ink colors, copy actions,
   scrolling, live preview, and direct click-to-select dictionary analysis.
 
 ## Quick start from release
 
-1. Download `MagicMirror-v1.0.4-windows-x64.zip` from
+1. Download `MagicMirror-v1.0.5-windows-x64.zip` from
    <https://github.com/sbay-dev/MagicMirror/releases/latest>.
 2. Extract the ZIP.
 3. Run `MagicMirror.Native.exe`.
@@ -62,7 +66,7 @@ dotnet run --project .\MagicMirror.Native\MagicMirror.Native.csproj `
 Create a release ZIP:
 
 ```powershell
-.\scripts\package-windows.ps1 -Version 1.0.4
+.\scripts\package-windows.ps1 -Version 1.0.5
 ```
 
 ## Repository layout
@@ -77,8 +81,11 @@ scripts/              Verification and packaging scripts
 ## Privacy and security
 
 Magic Mirror captures only the overlay rectangle selected by the user. AI
-translation requests are sent to the configured Sarmad gateway. Do not use an
-untrusted gateway for sensitive documents. See [SECURITY.md](SECURITY.md).
+translation requests are sent to the configured Sarmad gateway. Free MT fallback
+is never executed by default; if Sarmad cannot provide a usable translation, the
+user must explicitly choose the MT option for that run because it sends text to
+Google `gtx` / MyMemory. Keep MT disabled for sensitive documents. See
+[SECURITY.md](SECURITY.md).
 
 ## License
 

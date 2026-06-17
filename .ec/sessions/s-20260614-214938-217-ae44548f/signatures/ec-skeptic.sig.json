@@ -1,0 +1,10 @@
+{
+  "slug": "ec-skeptic",
+  "path": "theses\\phase1\\ec-skeptic.md",
+  "model": "ec-skeptic",
+  "prompt_sha256": "1984f97517ef7c81ff6bcbcc9f168a24947c5b0f6756e44d6cc6837a7b4e8c33",
+  "body_bytes": 2233,
+  "body_sha256": "ec800db691e2b4657e498b9af1d793fc135b6208211f77da3795c04525817ef5",
+  "signed_at": "2026-06-14T22:20:37.5494468Z",
+  "generated_by": "experts-council-app"
+}

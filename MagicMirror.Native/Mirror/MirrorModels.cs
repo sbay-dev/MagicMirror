@@ -43,6 +43,12 @@ public sealed class OcrTextRegion
 
     /// <summary>BCP-47 / ISO code of the detected source language when the engine reports it.</summary>
     public string? SourceLanguage { get; init; }
+
+    /// <summary>
+    /// Original OCR/UIA line rectangles that produced this region. Paragraph-merged regions keep
+    /// these for source highlighting instead of reconstructing lines from text length.
+    /// </summary>
+    public IReadOnlyList<OcrTextRegion> SourceLines { get; init; } = Array.Empty<OcrTextRegion>();
 }
 
 /// <summary>
@@ -95,6 +101,9 @@ public sealed class TranslatedBlock
     public int LineHeightHint { get; init; }
     public FontInfo Font { get; init; } = new();
     public float Confidence { get; init; } = -1f;
+    public IReadOnlyList<OcrTextRegion> SourceLines { get; init; } = Array.Empty<OcrTextRegion>();
+    public TranslationSourceKind TranslationSource { get; set; } = TranslationSourceKind.OriginalTextFallback;
+    public string TranslationSourceLabel { get; set; } = "";
 }
 
 /// <summary>Which OCR engine the pipeline should prefer.</summary>
@@ -125,6 +134,9 @@ public enum OverlayLayoutMode
 /// </summary>
 public sealed class MirrorSettings
 {
+    /// <summary>Internal settings schema version used for safe one-time migrations.</summary>
+    public int SettingsSchemaVersion { get; set; }
+
     /// <summary>BCP-47 code of the language the mirror translates INTO (the "main language"). Default Arabic.</summary>
     public string TargetLanguage { get; set; } = "ar";
 
@@ -161,6 +173,12 @@ public sealed class MirrorSettings
     public OcrEnginePreference OcrEngine { get; set; } = OcrEnginePreference.TesseractThenNative;
 
     /// <summary>
+    /// Multiplier applied only to the final OCR capture. A 2x default gives OCR larger glyphs
+    /// while keeping the live preview lightweight; coordinates remain relative to the scaled capture.
+    /// </summary>
+    public double OcrCaptureScale { get; set; } = 2.0;
+
+    /// <summary>
     /// Prefer reading text straight from the window (UI Automation) instead of OCR when the app
     /// exposes it — faster and lighter. Falls back to OCR automatically when unavailable.
     /// </summary>
@@ -181,10 +199,22 @@ public sealed class MirrorSettings
     /// <summary>Cloudflare Workers AI model id requested through the mesh.</summary>
     public string AiModel { get; set; } = "@cf/openai/gpt-oss-20b";
 
+    /// <summary>
+    /// Permit offering free third-party MT fallback (Google gtx / MyMemory) when Sarmad cannot provide
+    /// a usable translation. MT remains off by default and is only executed after explicit per-run user
+    /// confirmation because it sends captured text to third-party services.
+    /// </summary>
+    public bool AllowMachineTranslationFallback { get; set; }
+
+    /// <summary>
+    /// Per-translation runtime override: when true, skip Sarmad and translate the whole capture with
+    /// the explicit MT fallback chosen by the user. This is reset before settings are saved.
+    /// </summary>
+    public bool ForceMachineTranslationFallback { get; set; }
+
     /// <summary>Optional explicit path to a Windows tesseract.exe; empty = auto-discover.</summary>
     public string TesseractExePath { get; set; } = "";
 
-    /// <summary>tessdata directory (THEORYS eng+ara/osd traineddata).</summary>
-    public string TessDataPath { get; set; } =
-        @"X:\source\THEORYS\Items\tesseract-complete-package\models\tesseract-ocr\5\tessdata";
+    /// <summary>Optional tessdata directory; empty = auto-discover from Tesseract/app folders.</summary>
+    public string TessDataPath { get; set; } = "";
 }
